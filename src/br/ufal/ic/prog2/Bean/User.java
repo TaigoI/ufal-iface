@@ -1,6 +1,7 @@
 package br.ufal.ic.prog2.Bean;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 public class User implements Serializable {
 
@@ -9,17 +10,23 @@ public class User implements Serializable {
     private String displayName = null;
     private String password = null;
 
-    private User[] friends;
-    private User[] friendInvites;
+    private ArrayList<User> friends;
+    private ArrayList<User> friendInvites;
 
     //TODO: Próxima aula de desenvolvimento adicionar funcionalidades
     /* private String salt;
     *  private Chat[] chats;
-    *  private Post[] newsFeed;
-    *  private Post[] myPosts;
     * */
 
     public User(){}
+
+    public User protectPersonalData(){
+        this.displayName = "";
+        this.password = null;
+        this.friendInvites = null;
+
+        return this;
+    }
 
     public String getUid() {
         return uid;
@@ -45,19 +52,19 @@ public class User implements Serializable {
         this.password = password;
     }
 
-    public User[] getFriends() {
+    public ArrayList<User> getFriends() {
         return friends;
     }
 
-    public void setFriends(User[] friends) {
+    public void setFriends(ArrayList<User> friends) {
         this.friends = friends;
     }
 
-    public User[] getFriendInvites() {
+    public ArrayList<User> getFriendInvites() {
         return friendInvites;
     }
 
-    public void setFriendInvites(User[] friendInvites) {
+    public void setFriendInvites(ArrayList<User> friendInvites) {
         this.friendInvites = friendInvites;
     }
 

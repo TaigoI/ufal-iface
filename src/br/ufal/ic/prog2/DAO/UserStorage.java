@@ -3,6 +3,7 @@ package br.ufal.ic.prog2.DAO;
 import br.ufal.ic.prog2.Bean.User;
 import br.ufal.ic.prog2.DAO.ResponseEnums.CreateUserResponse;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -60,6 +61,9 @@ public class UserStorage {
         if(user != null){
             if(user.getUid() != null && !memoryDatabase.containsKey(user.getUid())){
                 if(user.getUsername() != null && !usernameToUidDatabase.containsKey(user.getUsername())) {
+                    if(user.getFriends() == null){user.setFriends(new ArrayList<>());}
+                    if(user.getFriends() == null){user.setFriendInvites(new ArrayList<>());}
+
                     memoryDatabase.put(user.getUid(), user);
                     usernameToUidDatabase.put(user.getUsername(), user.getUid());
                     return CreateUserResponse.OK;

@@ -191,19 +191,23 @@ public class UserController {
         }
     }
 
-    public String displayUser(){
+    public String displayLoggedUser(){
         if(loggedUser == null){
             return "Não há usuário logado";
         }
+        return displayUser(loggedUser);
+    }
 
-        return loggedUser.getUid()+" {"
-                +"\n    username: "+loggedUser.getUsername()
-                +"\n    DisplayName: "+loggedUser.getDisplayName()
-                +"\n    Password: "+loggedUser.getPassword()
+    public String displayUser(User user){
+        return user.getUid()+" {"
+                +"\n    username: "+user.getUsername()
+                +"\n    DisplayName: "+user.getDisplayName()
+                +"\n    Password: "+user.getPassword()
                 +"\n}";
     }
 
     public User getLoggedUser() {
         return loggedUser;
     }
+
 }
