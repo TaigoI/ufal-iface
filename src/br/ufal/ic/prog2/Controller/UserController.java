@@ -2,7 +2,7 @@ package br.ufal.ic.prog2.Controller;
 
 import br.ufal.ic.prog2.Bean.User;
 import br.ufal.ic.prog2.Controller.IdentifierEnums.UserIdentifier;
-import br.ufal.ic.prog2.DAO.StorageFactory;
+import br.ufal.ic.prog2.Factory.StorageFactory;
 import br.ufal.ic.prog2.DAO.UserStorage;
 
 import java.util.Random;
@@ -10,16 +10,21 @@ import java.util.Scanner;
 
 public class UserController {
 
-    User loggedUser;
+    public static void clearScreen() {
+        System.out.println(System.lineSeparator().repeat(100));
+    }
+
+    private User loggedUser;
+
     private static final Scanner scanner = new Scanner(System.in);
 
-    private void sendFriendInvite(UserIdentifier type, String Identifier){
+    /*private void sendFriendInvite(UserIdentifier type, String Identifier){
         if(type.equals(UserIdentifier.UID)){
 
         } else if (type.equals(UserIdentifier.DISPLAY_NAME)){
 
         }
-    }
+    }*/
 
     public void sendInviteDialog(){
 
@@ -41,7 +46,7 @@ public class UserController {
     }
 
     public boolean deleteUserDialog(){
-        UserStorage userStorage = StorageFactory.getUserStorageObject();
+        UserStorage userStorage = StorageFactory.getUserStorage();
         System.out.println("iFace > Apagar Perfil\n");
 
         if(loggedUser == null){
@@ -67,7 +72,7 @@ public class UserController {
     }
 
     public User updateUserDialog(){
-        UserStorage userStorage = StorageFactory.getUserStorageObject();
+        UserStorage userStorage = StorageFactory.getUserStorage();
         System.out.println("iFace > Edição de Perfil\n");
 
         if(loggedUser == null){
@@ -79,7 +84,7 @@ public class UserController {
 
         System.out.println("Atualmente, o único atributo de perfil disponível é \"Display Name\": "+loggedUser.getDisplayName()+", seu nome...");
         System.out.println("Deseja realmente alterar? (\"sim\" para afirmativo, qualquer outra coisa para negativo)");
-        if(scanner.next().toString().equals("sim")){
+        if(scanner.next().equals("sim")){
             System.out.println("Informe seu primeiro nome (sem espaços): ");
             String firstDisplayName = scanner.next();
             System.out.println("Informe seu último nome (sem espaços): ");
@@ -97,7 +102,7 @@ public class UserController {
     }
 
     public User createUserDialog(){
-        UserStorage userStorage = StorageFactory.getUserStorageObject();
+        UserStorage userStorage = StorageFactory.getUserStorage();
 
         System.out.println("iFace > Criar novo usuário\n");
 
@@ -137,7 +142,11 @@ public class UserController {
     }
 
     public User loginDialog(){
-        UserStorage userStorage = StorageFactory.getUserStorageObject();
+        if(StorageFactory.getUserStorage().isEmpty()){
+            User newUser = createUserDialog();
+            this.loggedUser = newUser;
+            return newUser;
+        }
 
         System.out.println("iFace > Entrar\n");
 
@@ -146,17 +155,19 @@ public class UserController {
         System.out.println("Informe sua senha (sem espaços): ");
         String password = scanner.next();
 
-        User user = userStorage.attemptLogin(login, password);
+        User user = StorageFactory.getUserStorage().attemptLogin(login, password);
 
         while(user == null){
-            System.out.println("\nLogin ou senha incorretos, tente novamente...");
+            clearScreen();
+
+            System.out.println("\n---> Login ou senha incorretos, tente novamente...");
 
             System.out.println("Informe seu login (sem espaços): ");
             login = scanner.next();
             System.out.println("Informe sua senha (sem espaços): ");
             password = scanner.next();
 
-            user = userStorage.attemptLogin(login, password);
+            user = StorageFactory.getUserStorage().attemptLogin(login, password);
         }
 
         System.out.println("Login realizado com sucesso!");
@@ -165,12 +176,12 @@ public class UserController {
     }
 
     public boolean logoutDialog(){
-        UserStorage userStorage = StorageFactory.getUserStorageObject();
+        UserStorage userStorage = StorageFactory.getUserStorage();
 
         System.out.println("iFace > Sair\n");
 
         System.out.println("Deseja realmente sair? (\"sim\" para afirmativo, qualquer outra coisa para negativo)");
-        if(scanner.next().toString().equals("sim")){
+        if(scanner.next().equals("sim")){
             this.loggedUser = null;
             System.out.println("Você saiu do sistema, volte sempre...");
             return true;
@@ -192,4 +203,7 @@ public class UserController {
                 +"\n}";
     }
 
+    public User getLoggedUser() {
+        return loggedUser;
+    }
 }

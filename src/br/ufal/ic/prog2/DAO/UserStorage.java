@@ -9,12 +9,16 @@ import java.util.Map;
 
 public class UserStorage {
 
-    private Map<String, User> memoryDatabase;
-    private Map<String, String> usernameToUidDatabase;
+    private final Map<String, User> memoryDatabase;
+    private final Map<String, String> usernameToUidDatabase;
 
-    UserStorage(){
+    public UserStorage(){
         this.memoryDatabase = new HashMap<>();
         this.usernameToUidDatabase = new HashMap<>();
+    }
+
+    public boolean isEmpty(){
+        return (memoryDatabase.size() <= 0);
     }
 
     public boolean uidAlreadyExists(String uid){
@@ -37,7 +41,7 @@ public class UserStorage {
         if(username != null && usernameToUidDatabase.containsKey(username)) {
             String uid = usernameToUidDatabase.get(username);
             User user = memoryDatabase.get(uid);
-            if(password != null && user.getPassword().equals(password)){
+            if(user.getPassword().equals(password)){
                 return user;
             }
         }
