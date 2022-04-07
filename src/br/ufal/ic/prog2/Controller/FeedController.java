@@ -19,7 +19,8 @@ public class FeedController {
 
     public Post createPost(String uid) {
         System.out.println("iFace [+Post] <@"+ ControllerFactory.getUserController().getLoggedUser().getUsername()+">\n");
-        User user = StorageFactory.getUserStorage().getUserByUid(uid).protectPersonalData();
+        User user = StorageFactory.getUserStorage().getUserByUid(uid);
+        //TODO: lembrar de clonar o objeto para evitar null pointer .protectPersonalData();
 
         Post newPost = new Post();
         newPost.setOwner(user);
@@ -50,7 +51,6 @@ public class FeedController {
             history.put(uid, new ArrayList<>());
             position.put(uid, -1);
         }
-        System.out.println("(nextPost) PRE: "+position.get(uid).toString());
 
         if(position.get(uid)+1 >= history.get(uid).size()){
             User user = StorageFactory.getUserStorage().getUserByUid(uid);
@@ -60,11 +60,9 @@ public class FeedController {
             }
 
             position.put(uid, history.get(uid).size()-1);
-            System.out.println("(nextPost) POST1: "+position.get(uid).toString());
             return next;
         } else {
             position.put(uid, position.get(uid)+1);
-            System.out.println("(nextPost) POST2: "+position.get(uid).toString());
             return history.get(uid).get(position.get(uid));
         }
     }
@@ -74,15 +72,16 @@ public class FeedController {
             history.put(uid, new ArrayList<>());
             position.put(uid, -1);
         }
-        System.out.println("(prevPost) PRE: "+position.get(uid).toString());
 
-        if(position.get(uid)-1 < 0){
+        if(position.get(uid).equals(0)){
             position.put(uid, -1);
-            System.out.println("(prevPost) POST1: "+position.get(uid).toString());
+            return history.get(uid).get(0);
+        }
+        else if(position.get(uid)-1 <= 0){
+            position.put(uid, -1);
             return null;
         } else {
             position.put(uid, position.get(uid)-1);
-            System.out.println("(prevPost) POST2: "+position.get(uid).toString());
             return history.get(uid).get(position.get(uid));
         }
     }
@@ -94,7 +93,17 @@ public class FeedController {
 
         return ""
                 +"> "+ post.getTitle()+"\n"
-                +"@" + post.getOwner().getUsername()+"\n\n"
+                +"@" + post.getOwner().getUsername()+"   ("+ (post.isPublic() ? "público" : "amigos") +")\n\n"
                 +"\""+post.getMessage().replaceAll("(.{1,100})\\s+", "$1\n")+"\"\n";
+    }
+
+    public Post lastPost(String uid) {
+        if(!history.containsKey(uid)){
+            history.put(uid, new ArrayList<>());
+            position.put(uid, -1);
+        }
+
+        position.put(uid, history.get(uid).size()-1);
+        return history.get(uid).get(position.get(uid));
     }
 }

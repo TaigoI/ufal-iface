@@ -7,6 +7,7 @@ public class Post implements Serializable {
     private User owner;
     private String title;
     private String message;
+    private boolean isPublic;
 
     public User getOwner() {
         return owner;
@@ -30,5 +31,13 @@ public class Post implements Serializable {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean aPublic) {
+        isPublic = aPublic;
     }
 }

@@ -11,11 +11,6 @@ import java.util.Map;
 
 public class FeedStorage {
 
-
-//  my_uid {
-//      public: lastPostIndex,
-//      friend_uid: lastPostIndex...
-//  }
     private final Map<String, Map<String, Integer>> lastSeen;
     private final ArrayList<Post> publicFeed;
     private final Map<String, ArrayList<Post>> privateFeeds;
@@ -27,6 +22,8 @@ public class FeedStorage {
     }
 
     public Post storePost(Post newPost, boolean isPublic){
+        newPost.setPublic(isPublic);
+
         if(isPublic){
             publicFeed.add(newPost);
         } else {
@@ -46,7 +43,7 @@ public class FeedStorage {
         Map <String, Integer> lastMap = lastSeen.get(loggedUser.getUid());
 
         ArrayList<User> friends = (ArrayList<User>) loggedUser.getFriends().clone();
-        friends.add(loggedUser);
+        //friends.add(loggedUser);
         Collections.shuffle(friends);
 
         for(User friend : friends){
@@ -67,10 +64,13 @@ public class FeedStorage {
             lastMap.put("public", -1);
         }
 
-        Integer last = lastMap.get("public");
-        if(publicFeed.size() > last+1){
-            lastMap.put("public", last+1);
-            return publicFeed.get(last+1);
+        while(publicFeed.size() > lastMap.get("public") + 1) {
+
+            lastMap.put("public", lastMap.get("public") + 1);
+
+            if (!publicFeed.get(lastMap.get("public")).getOwner().getUid().equals(loggedUser.getUid())) {
+                return publicFeed.get(lastMap.get("public"));
+            }
         }
 
         return null;

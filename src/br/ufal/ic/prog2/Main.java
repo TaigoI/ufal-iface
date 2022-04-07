@@ -91,11 +91,12 @@ public class Main {
         boolean flag = true;
 
         while(flag){
+            clearScreen();
             if(!topMessage.equals("")){System.out.println("\n---> "+topMessage+"\n"); topMessage="";}
 
             System.out.println("iFace [Feed] <@"+ControllerFactory.getUserController().getLoggedUser().getUsername()+">\n");
             System.out.println(ControllerFactory.getFeedController().displayPost(post));
-            System.out.println("<1> Novo Post     <2> Ver Próximo     <3> Ver Anterior     <0> Voltar".indent(4));
+            System.out.println("<1> Novo Post     <2> Ver Próximo     <3> Ver Anterior     <0> Voltar");
             System.out.print("Escolha: ");
             entrada = scanner.nextInt();
 
@@ -103,7 +104,10 @@ public class Main {
 
             switch (entrada) {
                 case 0 -> flag = false;
-                case 1 -> post = ControllerFactory.getFeedController().createPost(ControllerFactory.getUserController().getLoggedUser().getUid());
+                case 1 -> {
+                    ControllerFactory.getFeedController().createPost(ControllerFactory.getUserController().getLoggedUser().getUid());
+                    post = ControllerFactory.getFeedController().lastPost(ControllerFactory.getUserController().getLoggedUser().getUid());
+                }
                 case 2 -> post = ControllerFactory.getFeedController().nextPost(ControllerFactory.getUserController().getLoggedUser().getUid());
                 case 3 -> post = ControllerFactory.getFeedController().previousPost(ControllerFactory.getUserController().getLoggedUser().getUid());
                 default -> topMessage = "A opção escolhida é inválida...";
