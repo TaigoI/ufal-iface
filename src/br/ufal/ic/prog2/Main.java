@@ -74,7 +74,7 @@ public class Main {
         switch (entrada) {
             case 0 -> ControllerFactory.getUserController().logoutDialog();
             case 1 -> feedPage(scanner);
-            case 2 -> communitiesPage(scanner);
+            case 2 -> communitiesExplorerPage(scanner);
             case 3 -> chatsPage(scanner);
             case 4 -> profilePage(scanner);
             default -> topMessage = "A opção escolhida é inválida...";
@@ -113,10 +113,45 @@ public class Main {
                 default -> topMessage = "A opção escolhida é inválida...";
             }
         }
-
     }
 
-    private static void communitiesPage(Scanner scanner){}
+    private static void communitiesExplorerPage(Scanner scanner){
+        int entrada;
+        String topMessage = "";
+
+        boolean flag = true;
+
+        while(flag){
+            clearScreen();
+            if(!topMessage.equals("")){System.out.println("\n---> "+topMessage+"\n"); topMessage="";}
+
+            System.out.println("iFace [Communities Explorer] <@"+ControllerFactory.getUserController().getLoggedUser().getUsername()+">\n");
+            System.out.println("<1> Nova Comunidade     <2> Listar Comunidades     <0> Voltar");
+            System.out.print("Escolha: ");
+            entrada = scanner.nextInt();
+
+            switch (entrada) {
+                case 0 -> flag = false;
+                case 1 -> ControllerFactory.getCommunityController().createCommunityDialog();
+                case 2 -> {
+                    String list = ControllerFactory.getCommunityController().listCommunities();
+                    System.out.println("\n\n"+list);
+
+                    System.out.println("<0> Voltar");
+                    int voltar = scanner.nextInt();
+                    while(voltar != 0){
+                        System.out.println("Pressione \"0\" e Enter para voltar...");
+                        voltar = scanner.nextInt();
+                    }
+                }
+                default -> topMessage = "A opção escolhida é inválida...";
+            }
+        }
+    }
+
+    private static void communityPage(String cid, Scanner scanner){
+
+    }
 
     private static void chatsPage(Scanner scanner){}
 

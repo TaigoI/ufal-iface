@@ -93,7 +93,7 @@ public class FeedController {
 
         return ""
                 +"> "+ post.getTitle()+"\n"
-                +"@" + post.getOwner().getUsername()+"   ("+ (post.isPublic() ? "público" : "amigos") +")\n\n"
+                +"@" + post.getOwner().getUsername()+"   ("+ post.getTarget() +")\n\n"
                 +"\""+post.getMessage().replaceAll("(.{1,100})\\s+", "$1\n")+"\"\n";
     }
 

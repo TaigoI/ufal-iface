@@ -22,11 +22,11 @@ public class FeedStorage {
     }
 
     public Post storePost(Post newPost, boolean isPublic){
-        newPost.setPublic(isPublic);
-
         if(isPublic){
+            newPost.setTarget("público");
             publicFeed.add(newPost);
         } else {
+            newPost.setTarget("amigos");
             if(!privateFeeds.containsKey(newPost.getOwner().getUid())){
                 privateFeeds.put(newPost.getOwner().getUid(), new ArrayList<>());
             }
