@@ -6,7 +6,10 @@ import br.ufal.ic.prog2.Bean.User;
 import br.ufal.ic.prog2.DAO.CommunityStorage;
 import br.ufal.ic.prog2.Factory.ControllerFactory;
 import br.ufal.ic.prog2.Factory.StorageFactory;
+import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.apache.commons.text.similarity.LevenshteinResults;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class CommunityController {
@@ -72,6 +75,36 @@ public class CommunityController {
             result = result.concat(displayCommunity(community)+"\n");
         }
         return result;
+    }
+
+    public ArrayList<String> sortTitlesBySearch(String searchName){
+        LevenshteinDistance distanceCalculator = new LevenshteinDistance();
+
+        Set<String> names = StorageFactory.getCommunityStorage().getNameToCidDatabase().keySet();
+        HashMap<String, Integer> distances = new HashMap<>();
+        for (String communityName : names){
+            Integer distance = distanceCalculator.apply(communityName, searchName);
+            distances.put(communityName, distance);
+        }
+
+        //todo: sort distances and select top 5
+        return null;
+    }
+
+    public String searchDialog() {
+        System.out.println("iFace > Buscar comunidade\n");
+
+        System.out.println("Informe o termo de busca: ");
+        String name = scanner.next();
+
+        while(){
+            System.out.println("\n O nome \""+name+"\" já existe...");
+            System.out.println("Informe seu nome desejado (sem espaços): ");
+            name = scanner.next();
+        }
+
+        String cid = null;
+        return cid;
     }
 
     public Post createPost(String cid, String uid) {
@@ -200,5 +233,6 @@ public class CommunityController {
         position.put(uid, history.get(uid).size()-1);
         return history.get(uid).get(position.get(uid));
     }
+
 
 }

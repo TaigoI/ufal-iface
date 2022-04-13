@@ -14,9 +14,13 @@ public class Main {
 
     public static void clearScreen() {
         System.out.println(System.lineSeparator().repeat(100));
+        System.out.flush();
     }
 
     public static void main(String[] args) {
+        String os = System.getProperty("os.name");
+        System.out.println("---> "+os);
+
         Scanner scanner = new Scanner(System.in);
 
         String topMessage = "";
@@ -126,7 +130,11 @@ public class Main {
             if(!topMessage.equals("")){System.out.println("\n---> "+topMessage+"\n"); topMessage="";}
 
             System.out.println("iFace [Communities Explorer] <@"+ControllerFactory.getUserController().getLoggedUser().getUsername()+">\n");
-            System.out.println("<1> Nova Comunidade     <2> Listar Comunidades     <0> Voltar");
+            System.out.println("""
+                    <1> Criar Comunidade  
+                    <2> Listar Todas as Comunidades
+                    <3> Buscar Comunidade 
+                    <0> Voltar""".indent(4));
             System.out.print("Escolha: ");
             entrada = scanner.nextInt();
 
@@ -134,15 +142,27 @@ public class Main {
                 case 0 -> flag = false;
                 case 1 -> ControllerFactory.getCommunityController().createCommunityDialog();
                 case 2 -> {
+                    clearScreen();
+                    System.out.println("iFace [Communities List] <@"+ControllerFactory.getUserController().getLoggedUser().getUsername()+">");
+
                     String list = ControllerFactory.getCommunityController().listCommunities();
-                    System.out.println("\n\n"+list);
+                    System.out.println("");
+                    System.out.println(list.equals("") ? "Ainda não existem comunidades cadastradas..." : list);
+                    System.out.println("");
 
                     System.out.println("<0> Voltar");
+                    System.out.print("Escolha: ");
                     int voltar = scanner.nextInt();
                     while(voltar != 0){
-                        System.out.println("Pressione \"0\" e Enter para voltar...");
+                        System.out.println("\nPressione \"0\" e Enter para voltar...");
                         voltar = scanner.nextInt();
                     }
+                }
+                case 3 -> {
+                    String cid = ControllerFactory.getCommunityController().searchDialog();
+
+
+                    communityPage("0", scanner);
                 }
                 default -> topMessage = "A opção escolhida é inválida...";
             }
