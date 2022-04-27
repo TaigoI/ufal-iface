@@ -77,18 +77,41 @@ public class CommunityController {
         return result;
     }
 
+    private class CommunityDistance{
+        public Integer distance;
+        public String name;
+    }
+
     public ArrayList<String> sortTitlesBySearch(String searchName){
         LevenshteinDistance distanceCalculator = new LevenshteinDistance();
-
         Set<String> names = StorageFactory.getCommunityStorage().getNameToCidDatabase().keySet();
-        HashMap<String, Integer> distances = new HashMap<>();
+        ArrayList<CommunityDistance> distances = new ArrayList<>();
+
         for (String communityName : names){
             Integer distance = distanceCalculator.apply(communityName, searchName);
-            distances.put(communityName, distance);
+            CommunityDistance d = new CommunityDistance();
+            d.distance = distance;
+            d.name = communityName;
+            distances.add(d);
         }
 
-        //todo: sort distances and select top 5
-        return null;
+        Collections.sort(distances,new Comparator<CommunityDistance>(){
+            @Override
+            public int compare(CommunityDistance C1, CommunityDistance C2) {
+                return C1.distance - C2.distance;
+            }
+        });
+
+        ArrayList<String> response = new ArrayList<>();
+        for (CommunityDistance d : distances){
+            response.add(d.name);
+        }
+
+        return response;
+    }
+
+    private String getCommunitiesAsOptions(ArrayList<String> communities){
+        for 
     }
 
     public String searchDialog() {
@@ -97,10 +120,17 @@ public class CommunityController {
         System.out.println("Informe o termo de busca: ");
         String name = scanner.next();
 
-        while(){
+        boolean selected = false;
+
+        ArrayList<String> searchResult = sortTitlesBySearch(name);
+        searchResult.
+
+        while(!selected){
             System.out.println("\n O nome \""+name+"\" já existe...");
             System.out.println("Informe seu nome desejado (sem espaços): ");
             name = scanner.next();
+
+            selected = true;
         }
 
         String cid = null;
