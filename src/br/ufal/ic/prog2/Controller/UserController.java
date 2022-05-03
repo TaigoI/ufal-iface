@@ -1,9 +1,8 @@
 package br.ufal.ic.prog2.Controller;
 
-import br.ufal.ic.prog2.Bean.User;
-import br.ufal.ic.prog2.Controller.IdentifierEnums.UserIdentifier;
+import br.ufal.ic.prog2.Model.Bean.User;
 import br.ufal.ic.prog2.Factory.StorageFactory;
-import br.ufal.ic.prog2.DAO.UserStorage;
+import br.ufal.ic.prog2.Model.DAO.UserStorage;
 
 import java.util.Random;
 import java.util.Scanner;

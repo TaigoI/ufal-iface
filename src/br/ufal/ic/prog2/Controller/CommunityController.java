@@ -1,9 +1,9 @@
 package br.ufal.ic.prog2.Controller;
 
-import br.ufal.ic.prog2.Bean.Community;
-import br.ufal.ic.prog2.Bean.Post;
-import br.ufal.ic.prog2.Bean.User;
-import br.ufal.ic.prog2.DAO.CommunityStorage;
+import br.ufal.ic.prog2.Model.Bean.Community;
+import br.ufal.ic.prog2.Model.Bean.Post;
+import br.ufal.ic.prog2.Model.Bean.User;
+import br.ufal.ic.prog2.Model.DAO.CommunityStorage;
 import br.ufal.ic.prog2.Factory.ControllerFactory;
 import br.ufal.ic.prog2.Factory.StorageFactory;
 import org.apache.commons.text.similarity.LevenshteinDistance;
@@ -11,6 +11,9 @@ import org.apache.commons.text.similarity.LevenshteinResults;
 
 import java.lang.reflect.Array;
 import java.util.*;
+
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 public class CommunityController {
 
@@ -77,7 +80,7 @@ public class CommunityController {
         return result;
     }
 
-    private class CommunityDistance{
+    private static class CommunityDistance{
         public Integer distance;
         public String name;
     }
@@ -95,7 +98,7 @@ public class CommunityController {
             distances.add(d);
         }
 
-        Collections.sort(distances,new Comparator<CommunityDistance>(){
+        distances.sort(new Comparator<>() {
             @Override
             public int compare(CommunityDistance C1, CommunityDistance C2) {
                 return C1.distance - C2.distance;
@@ -110,31 +113,42 @@ public class CommunityController {
         return response;
     }
 
-    private String getCommunitiesAsOptions(ArrayList<String> communities){
-        for 
-    }
-
     public String searchDialog() {
         System.out.println("iFace > Buscar comunidade\n");
 
         System.out.println("Informe o termo de busca: ");
         String name = scanner.next();
 
-        boolean selected = false;
+        ArrayList<String> sortedSearch = sortTitlesBySearch(name);
+        int pI = 0;
+        int pF = min(5,sortedSearch.size()-1);
 
-        ArrayList<String> searchResult = sortTitlesBySearch(name);
-        searchResult.
+        while(true){
+            int j = 1;
+            for(int i = pI; i <= pF; i++){
+                System.out.println("["+j+"] - "+sortedSearch.get(i));
+                j++;
+            }
 
-        while(!selected){
-            System.out.println("\n O nome \""+name+"\" já existe...");
-            System.out.println("Informe seu nome desejado (sem espaços): ");
-            name = scanner.next();
+            System.out.println("[0] - Voltar");
+            System.out.println("[6] - Página Anterior");
+            System.out.println("[7] - Próxima Página");
 
-            selected = true;
+            System.out.println("\nEscolha a opção:");
+            int option = new Scanner(System.in).nextInt();
+
+            if(option == 0){
+                return null;
+            } else if (option == 6){
+                pI = max(0,pI-5);
+                pF = min(pF-5,sortedSearch.size()-1);
+            } else if (option == 7){
+                pI = max(0,pI+5);
+                pF = min(pF+5,sortedSearch.size()-1);
+            } else if (option >= 1 && option <= 5){
+                return sortedSearch.get(option);
+            }
         }
-
-        String cid = null;
-        return cid;
     }
 
     public Post createPost(String cid, String uid) {

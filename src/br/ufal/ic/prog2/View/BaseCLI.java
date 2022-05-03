@@ -1,4 +1,4 @@
-package br.ufal.ic.prog2.CLI;
+package br.ufal.ic.prog2.View;
 
 import br.ufal.ic.prog2.Factory.ControllerFactory;
 

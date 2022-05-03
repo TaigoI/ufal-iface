@@ -1,12 +1,10 @@
-package br.ufal.ic.prog2.DAO;
+package br.ufal.ic.prog2.Model.DAO;
 
-import br.ufal.ic.prog2.Bean.Community;
-import br.ufal.ic.prog2.Bean.Post;
-import br.ufal.ic.prog2.Bean.User;
-import br.ufal.ic.prog2.DAO.ResponseEnums.CreateCommunityResponse;
-import br.ufal.ic.prog2.DAO.ResponseEnums.CreateUserResponse;
+import br.ufal.ic.prog2.Model.Bean.Community;
+import br.ufal.ic.prog2.Model.Bean.Post;
+import br.ufal.ic.prog2.Model.Bean.User;
+import br.ufal.ic.prog2.Model.DAO.ResponseEnums.CreateCommunityResponse;
 import br.ufal.ic.prog2.Factory.ControllerFactory;
-import br.ufal.ic.prog2.Factory.StorageFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;

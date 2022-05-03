@@ -1,12 +1,12 @@
 package br.ufal.ic.prog2;
 
-import br.ufal.ic.prog2.Bean.Post;
-import br.ufal.ic.prog2.Bean.User;
+import br.ufal.ic.prog2.Model.Bean.Post;
+import br.ufal.ic.prog2.Model.Bean.User;
 import br.ufal.ic.prog2.Factory.ControllerFactory;
 import br.ufal.ic.prog2.Controller.UserController;
-import br.ufal.ic.prog2.DAO.ResponseEnums.CreateUserResponse;
+import br.ufal.ic.prog2.Model.DAO.ResponseEnums.CreateUserResponse;
 import br.ufal.ic.prog2.Factory.StorageFactory;
-import br.ufal.ic.prog2.DAO.UserStorage;
+import br.ufal.ic.prog2.Model.DAO.UserStorage;
 
 import java.util.Scanner;
 
@@ -131,7 +131,7 @@ public class Main {
 
             System.out.println("iFace [Communities Explorer] <@"+ControllerFactory.getUserController().getLoggedUser().getUsername()+">\n");
             System.out.println("""
-                    <1> Criar Comunidade  
+                    <1> Criar Comunidade 
                     <2> Listar Todas as Comunidades
                     <3> Buscar Comunidade 
                     <0> Voltar""".indent(4));
@@ -146,9 +146,9 @@ public class Main {
                     System.out.println("iFace [Communities List] <@"+ControllerFactory.getUserController().getLoggedUser().getUsername()+">");
 
                     String list = ControllerFactory.getCommunityController().listCommunities();
-                    System.out.println("");
+                    System.out.println();
                     System.out.println(list.equals("") ? "Ainda não existem comunidades cadastradas..." : list);
-                    System.out.println("");
+                    System.out.println();
 
                     System.out.println("<0> Voltar");
                     System.out.print("Escolha: ");
@@ -160,9 +160,7 @@ public class Main {
                 }
                 case 3 -> {
                     String cid = ControllerFactory.getCommunityController().searchDialog();
-
-
-                    communityPage("0", scanner);
+                    communityPage(cid, scanner);
                 }
                 default -> topMessage = "A opção escolhida é inválida...";
             }

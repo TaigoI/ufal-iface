@@ -1,8 +1,7 @@
-package br.ufal.ic.prog2.DAO;
+package br.ufal.ic.prog2.Model.DAO;
 
-import br.ufal.ic.prog2.Bean.Post;
-import br.ufal.ic.prog2.Bean.User;
-import br.ufal.ic.prog2.Factory.ControllerFactory;
+import br.ufal.ic.prog2.Model.Bean.Post;
+import br.ufal.ic.prog2.Model.Bean.User;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,8 +41,8 @@ public class FeedStorage {
         }
         Map <String, Integer> lastMap = lastSeen.get(loggedUser.getUid());
 
-        ArrayList<User> friends = (ArrayList<User>) loggedUser.getFriends().clone();
-        //friends.add(loggedUser);
+        ArrayList<User> friends = new ArrayList<>(loggedUser.getFriends());
+        friends.add(loggedUser);
         Collections.shuffle(friends);
 
         for(User friend : friends){

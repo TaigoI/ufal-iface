@@ -1,7 +1,7 @@
 package br.ufal.ic.prog2.Controller;
 
-import br.ufal.ic.prog2.Bean.Post;
-import br.ufal.ic.prog2.Bean.User;
+import br.ufal.ic.prog2.Model.Bean.Post;
+import br.ufal.ic.prog2.Model.Bean.User;
 import br.ufal.ic.prog2.Factory.ControllerFactory;
 import br.ufal.ic.prog2.Factory.StorageFactory;
 
