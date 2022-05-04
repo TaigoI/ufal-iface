@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class User implements Serializable {
 
-    private String uid = null;
+    private String id = null;
     private String username = null;
     private String displayName = null;
     private String password = null;
@@ -13,27 +13,23 @@ public class User implements Serializable {
     private ArrayList<User> friends;
     private ArrayList<User> friendInvites;
 
-    //TODO: Próxima aula de desenvolvimento adicionar funcionalidades
-    /* private String salt;
-    *  private Chat[] chats;
-    * */
+    private Feed feed;
 
-    public User(){}
 
-    public User protectPersonalData(){
-        this.displayName = "";
-        this.password = null;
-        this.friendInvites = null;
-
-        return this;
+    public String getId() {
+        return id;
     }
 
-    public String getUid() {
-        return uid;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public void setUid(String uid) {
-        this.uid = uid;
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getDisplayName() {
@@ -68,12 +64,11 @@ public class User implements Serializable {
         this.friendInvites = friendInvites;
     }
 
-    public String getUsername() {
-        return username;
+    public Feed getFeed() {
+        return feed;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setFeed(Feed feed) {
+        this.feed = feed;
     }
-
 }

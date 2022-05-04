@@ -2,11 +2,11 @@ package br.ufal.ic.prog2.Model.Bean;
 
 import java.io.Serializable;
 
-public class Post implements Serializable {
+public class Post<T> implements Serializable {
     private User owner;
     private String title;
     private String message;
-    private String target;
+    private String targetName;
 
     public User getOwner() {
         return owner;
@@ -32,11 +32,11 @@ public class Post implements Serializable {
         this.message = message;
     }
 
-    public String getTarget() {
-        return target;
+    public String getTargetName() {
+        return targetName;
     }
 
-    public void setTarget(String target) {
-        this.target = target;
+    public void setTargetName(String targetName) {
+        this.targetName = targetName;
     }
 }

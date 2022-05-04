@@ -30,11 +30,8 @@ public class UserStorage {
         return usernameToUidDatabase.containsKey(name);
     }
 
-    public User getUserByUid(String uid){
-        if(memoryDatabase.containsKey(uid)){
-           return  memoryDatabase.get(uid);
-        }
-
+    public User getUserById(String uid){
+        if(memoryDatabase.containsKey(uid)) return memoryDatabase.get(uid);
         return null;
     }
 
@@ -51,21 +48,21 @@ public class UserStorage {
 
     public User getUserByDisplayName(String name){
         if(usernameToUidDatabase.containsKey(name)){
-            return getUserByUid(usernameToUidDatabase.get(name));
+            return getUserById(usernameToUidDatabase.get(name));
         }
 
         return null;
     }
 
-    public CreateUserResponse storeUser(User user){
+    public CreateUserResponse createUser(User user){
         if(user != null){
-            if(user.getUid() != null && !memoryDatabase.containsKey(user.getUid())){
+            if(user.getId() != null && !memoryDatabase.containsKey(user.getId())){
                 if(user.getUsername() != null && !usernameToUidDatabase.containsKey(user.getUsername())) {
                     if(user.getFriends() == null){user.setFriends(new ArrayList<>());}
                     if(user.getFriends() == null){user.setFriendInvites(new ArrayList<>());}
 
-                    memoryDatabase.put(user.getUid(), user);
-                    usernameToUidDatabase.put(user.getUsername(), user.getUid());
+                    memoryDatabase.put(user.getId(), user);
+                    usernameToUidDatabase.put(user.getUsername(), user.getId());
                     return CreateUserResponse.OK;
                 }
                 return CreateUserResponse.NAME_ALREADY_EXISTS;

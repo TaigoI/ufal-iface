@@ -5,12 +5,15 @@ import java.util.ArrayList;
 
 public class Community implements Serializable {
 
-    User owner;
-    ArrayList<User> members;
+    private User owner;
+    private ArrayList<User> members;
+    private Feed feed;
 
-    String cid;
-    String name;
-    String description;
+    private String id;
+    private String name;
+    private String description;
+
+
 
     public User getOwner() {
         return owner;
@@ -28,12 +31,20 @@ public class Community implements Serializable {
         this.members = members;
     }
 
-    public String getCid() {
-        return cid;
+    public Feed getFeed() {
+        return feed;
     }
 
-    public void setCid(String cid) {
-        this.cid = cid;
+    public void setFeed(Feed feed) {
+        this.feed = feed;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {

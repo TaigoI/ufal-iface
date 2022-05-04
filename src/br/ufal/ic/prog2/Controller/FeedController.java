@@ -1,109 +1,151 @@
 package br.ufal.ic.prog2.Controller;
 
+import br.ufal.ic.prog2.Factory.ViewFactory;
+import br.ufal.ic.prog2.Model.Bean.Community;
+import br.ufal.ic.prog2.Model.Bean.Feed;
 import br.ufal.ic.prog2.Model.Bean.Post;
 import br.ufal.ic.prog2.Model.Bean.User;
-import br.ufal.ic.prog2.Factory.ControllerFactory;
 import br.ufal.ic.prog2.Factory.StorageFactory;
+import br.ufal.ic.prog2.Model.DAO.FeedStorage;
+import br.ufal.ic.prog2.View.FeedCLI;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 
 public class FeedController {
 
-    private static final Map<String, ArrayList<Post>> history = new HashMap<>();
-    private static final Map<String, Integer> position = new HashMap<>();
+    public static Feed initializeNewFeed(){
+        Feed f = new Feed();
+        f.setPosts(new ArrayList<>());
+        f.setLastSeen(new HashMap<>());
+        f.setHistory(new HashMap<>());
+        return f;
+    }
 
-    private static final Scanner scanner = new Scanner(System.in);
+    private static Feed initializeUserInHistory(Feed feed, User u){
+        if(!feed.getHistory().containsKey(u.getId())){
+            feed.getHistory().put(u.getId(), new ArrayList<>());
+            feed.getLastSeen().put(u.getId(), -1);
+        }
 
-    public Post createPost(String uid) {
-        System.out.println("iFace [+Post] <@"+ ControllerFactory.getUserController().getLoggedUser().getUsername()+">\n");
-        User user = StorageFactory.getUserStorage().getUserByUid(uid);
-        //TODO: lembrar de clonar o objeto para evitar null pointer .protectPersonalData();
+        return feed;
+    }
+
+    private FeedCLI CLI;
+    private FeedStorage STORAGE;
+
+    FeedController(){
+        this.CLI =  ViewFactory.getFeedCLI();
+        this.STORAGE = StorageFactory.getFeedStorage();
+    }
+
+    public Post createPost(Feed f, User u){
+        String action = "Novo Post";
 
         Post newPost = new Post();
-        newPost.setOwner(user);
-
-        System.out.println("Informe o Título do Post: ");
-        String title = scanner.nextLine();
-        System.out.println("Informe o Texto do Post: ");
-        String text = scanner.nextLine();
+        newPost.setOwner(u);
+        String title = CLI.dialogPostTitle(action);
+        String text = CLI.dialogPostText(action);
 
         newPost.setTitle(title);
         newPost.setMessage(text);
 
-        System.out.println("Deseja marcar este post como público? (\"sim\" para afirmativo, qualquer outra coisa para negativo)");
+        Map<String, ArrayList<Post>> history = f.getHistory();
+        Map<String, Integer> lastSeen = f.getLastSeen();
+        initializeUserInHistory(f, u);
 
-        if(!history.containsKey(uid)){
-            history.put(uid, new ArrayList<>());
-            position.put(uid, -1);
-        }
+        f.getPosts().add(newPost);
+        history.get(u.getId()).add(newPost);
+        lastSeen.put(u.getId(), history.get(u.getId()).size()-1);
 
-        Post returnPost = StorageFactory.getFeedStorage().storePost(newPost, scanner.next().equals("sim"));
-        history.get(uid).add(returnPost);
-        position.put(uid, history.get(uid).size()-1);
-        return returnPost;
+        return newPost;
     }
 
-    public Post nextPost(String uid) {
-        if(!history.containsKey(uid)){
-            history.put(uid, new ArrayList<>());
-            position.put(uid, -1);
+    public Post createPost(String feedId, String userId) {
+        Feed f =  STORAGE.getFeedById(feedId);
+        User u =  StorageFactory.getUserStorage().getUserById(userId);
+        return createPost(f, u);
+    }
+
+    public Post friendsOrPublicNextPost(User u){
+        ArrayList<Feed> feeds = new ArrayList<>();
+        feeds.add(u.getFeed());
+
+        for (User friend : u.getFriends()){
+            feeds.add(friend.getFeed());
         }
 
-        if(position.get(uid)+1 >= history.get(uid).size()){
-            User user = StorageFactory.getUserStorage().getUserByUid(uid);
-            Post next = StorageFactory.getFeedStorage().findNextPost(user);
-            if(next != null){
-                history.get(uid).add(next);
+        Post post = nextPostFromFeeds(feeds, u);
+        if(post == null){
+            post = nextPostFromPublic(u);
+        }
+
+        //ainda pode ser null, mas isso significaria que não há mais posts para ver...
+        return post;
+    }
+
+    public Post nextPostFromFeeds(ArrayList<Feed> feeds, User user){
+        Collections.shuffle(feeds);
+        for (Feed feed : feeds){
+            Integer last = feed.getLastSeen().get(user.getId());
+            if(feed.getPosts().size() > (last+1)){
+                feed.getLastSeen().put(user.getId(), last+1);
+                return feed.getPosts().get(last+1);
             }
-
-            position.put(uid, history.get(uid).size()-1);
-            return next;
-        } else {
-            position.put(uid, position.get(uid)+1);
-            return history.get(uid).get(position.get(uid));
         }
+
+        return null;
     }
 
-    public Post previousPost(String uid) {
-        if(!history.containsKey(uid)){
-            history.put(uid, new ArrayList<>());
-            position.put(uid, -1);
+    public Post nextPostFromPublic(User user){
+        Feed feed = STORAGE.getFeedById("public");
+        Integer last = feed.getLastSeen().get(user.getId());
+        if(feed.getPosts().size() > (last+1)){
+            feed.getLastSeen().put(user.getId(), last+1);
+            return feed.getPosts().get(last+1);
         }
 
-        if(position.get(uid).equals(0)){
-            position.put(uid, -1);
-            return history.get(uid).get(0);
+        return null;
+    }
+
+    public Post previousPost(Feed f, User u) {
+        Map<String, ArrayList<Post>> history = f.getHistory();
+        Map<String, Integer> lastSeen = f.getLastSeen();
+        initializeUserInHistory(f, u);
+
+        if(lastSeen.get(u.getId()).equals(0)){
+            lastSeen.put(u.getId(), -1);
+            return history.get(u.getId()).get(0);
         }
-        else if(position.get(uid)-1 <= 0){
-            position.put(uid, -1);
+        else if(lastSeen.get(u.getId())-1 <= 0){
+            lastSeen.put(u.getId(), -1);
             return null;
         } else {
-            position.put(uid, position.get(uid)-1);
-            return history.get(uid).get(position.get(uid));
+            lastSeen.put(u.getId(), lastSeen.get(u.getId())-1);
+            return history.get(u.getId()).get(lastSeen.get(u.getId()));
         }
     }
 
-    public String displayPost(Post post){
-        if(post == null){
-            return "Não foram encontrados posts.\n";
-        }
-
-        return ""
-                +"> "+ post.getTitle()+"\n"
-                +"@" + post.getOwner().getUsername()+"   ("+ post.getTarget() +")\n\n"
-                +"\""+post.getMessage().replaceAll("(.{1,100})\\s+", "$1\n")+"\"\n";
+    public Post previousPost(String feedId, String userId) {
+        Feed f =  STORAGE.getFeedById(feedId);
+        User u =  StorageFactory.getUserStorage().getUserById(userId);
+        return previousPost(f, u);
     }
 
-    public Post lastPost(String uid) {
-        if(!history.containsKey(uid)){
-            history.put(uid, new ArrayList<>());
-            position.put(uid, -1);
-        }
+    public Post lastPost(Feed f, User u) {
+        Map<String, ArrayList<Post>> history = f.getHistory();
+        Map<String, Integer> lastSeen = f.getLastSeen();
+        initializeUserInHistory(f, u);
 
-        position.put(uid, history.get(uid).size()-1);
-        return history.get(uid).get(position.get(uid));
+        lastSeen.put(u.getId(), history.get(u.getId()).size()-1);
+        return history.get(u.getId()).get(lastSeen.get(u.getId()));
+    }
+
+    public Post lastPost(String feedId, String userId){
+        Feed f =  STORAGE.getFeedById(feedId);
+        User u =  StorageFactory.getUserStorage().getUserById(userId);
+        return lastPost(f, u);
     }
 }

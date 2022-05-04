@@ -9,10 +9,6 @@ import java.util.Scanner;
 
 public class UserController {
 
-    public static void clearScreen() {
-        System.out.println(System.lineSeparator().repeat(100));
-    }
-
     private User loggedUser;
 
     private static final Scanner scanner = new Scanner(System.in);
@@ -58,7 +54,7 @@ public class UserController {
         System.out.println("Deseja realmente apagar seu perfil? (\"sim\" para afirmativo, qualquer outra coisa para negativo)");
         if(scanner.next().equals("sim")){
 
-            userStorage.getMemoryDatabase().remove(loggedUser.getUid());
+            userStorage.getMemoryDatabase().remove(loggedUser.getId());
             userStorage.getUsernameToUidDatabase().remove(loggedUser.getUsername());
 
             this.loggedUser = null;
@@ -92,7 +88,7 @@ public class UserController {
             String displayName = firstDisplayName.concat(" ").concat(lastDisplayName);
             loggedUser.setDisplayName(displayName);
 
-            userStorage.getMemoryDatabase().put(loggedUser.getUid(), loggedUser);
+            userStorage.getMemoryDatabase().put(loggedUser.getId(), loggedUser);
         } else {
             System.out.println("Você escolheu não alterar seu perfil, voltando para o menu principal...");
         }
@@ -131,10 +127,10 @@ public class UserController {
         User user = new User();
         user.setUsername(username);
         user.setDisplayName(displayName);
-        user.setUid(uid);
+        user.setId(uid);
         user.setPassword(password);
 
-        userStorage.storeUser(user);
+        userStorage.createUser(user);
 
         System.out.println("Usuário criado com sucesso!");
         return user;
@@ -198,7 +194,7 @@ public class UserController {
     }
 
     public String displayUser(User user){
-        return user.getUid()+" {"
+        return user.getId()+" {"
                 +"\n    username: "+user.getUsername()
                 +"\n    DisplayName: "+user.getDisplayName()
                 +"\n    Password: "+user.getPassword()
