@@ -1,8 +1,8 @@
 package br.ufal.ic.prog2.Factory;
 
-import br.ufal.ic.prog2.DAO.CommunityStorage;
-import br.ufal.ic.prog2.DAO.FeedStorage;
-import br.ufal.ic.prog2.DAO.UserStorage;
+import br.ufal.ic.prog2.Model.DAO.CommunityStorage;
+import br.ufal.ic.prog2.Model.DAO.FeedStorage;
+import br.ufal.ic.prog2.Model.DAO.UserStorage;
 
 public class StorageFactory {
 

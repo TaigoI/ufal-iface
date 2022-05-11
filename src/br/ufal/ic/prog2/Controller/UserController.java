@@ -1,213 +1,144 @@
 package br.ufal.ic.prog2.Controller;
 
-import br.ufal.ic.prog2.Bean.User;
-import br.ufal.ic.prog2.Controller.IdentifierEnums.UserIdentifier;
+import br.ufal.ic.prog2.Factory.ViewFactory;
+import br.ufal.ic.prog2.Model.Bean.Community;
+import br.ufal.ic.prog2.Model.Bean.User;
 import br.ufal.ic.prog2.Factory.StorageFactory;
-import br.ufal.ic.prog2.DAO.UserStorage;
+import br.ufal.ic.prog2.Model.DAO.UserStorage;
+import br.ufal.ic.prog2.View.UserCLI;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.Scanner;
 
 public class UserController {
 
-    public static void clearScreen() {
-        System.out.println(System.lineSeparator().repeat(100));
-    }
-
     private User loggedUser;
 
-    private static final Scanner scanner = new Scanner(System.in);
+    private UserCLI CLI;
 
-    /*private void sendFriendInvite(UserIdentifier type, String Identifier){
-        if(type.equals(UserIdentifier.UID)){
-
-        } else if (type.equals(UserIdentifier.DISPLAY_NAME)){
-
-        }
-    }*/
-
-    public void sendInviteDialog(){
-
-
-
+    public UserController(){
+        CLI = ViewFactory.getUserCLI();
     }
 
-    private String generateRandomUid(){
-        Random random = new Random();
-        int rUid = random.nextInt(99999998);
-        String preUid =  String.valueOf(rUid);
-        String uid = "";
-        for( int i = 0; i < (8 - preUid.length()); i++){
-            uid = uid.concat("0");
-        }
-        uid = uid.concat(preUid);
+    public boolean deleteUser(){
+        if(CLI.dialogDeleteUser()){
+            StorageFactory.getUserStorage().getMemoryDatabase().remove(loggedUser.getId());
+            StorageFactory.getUserStorage().getUsernameToUidDatabase().remove(loggedUser.getUsername());
 
-        return uid;
-    }
+            for(Community community : loggedUser.getCommunities()){
+                community.getMembers().remove(loggedUser);
 
-    public boolean deleteUserDialog(){
-        UserStorage userStorage = StorageFactory.getUserStorage();
-        System.out.println("iFace > Apagar Perfil\n");
+                if(community.getOwner().getId().equals(loggedUser.getId())){
+                    //since user has been removed, if it has > 0 members, can get index 0.
+                    //otherwise, delete community...
+                    if(community.getMembers().size() > 0){
+                        community.setOwner(community.getMembers().get(0));
+                    } else{
+                        StorageFactory.getCommunityStorage().getNameToCidDatabase().remove(community.getName());
+                        StorageFactory.getCommunityStorage().getMemoryDatabase().remove(community.getId());
+                    }
+                }
+            }
 
-        if(loggedUser == null){
-            System.out.println("Você ainda não está logado... Vamos fazer seu login\n");
-            loginDialog();
-        } else {
-            System.out.println("Olá "+loggedUser.getUsername()+"...\n");
-        }
+            StorageFactory.getFeedStorage().getMemoryDatabase().remove(loggedUser.getFeed().getId());
 
-        System.out.println("Deseja realmente apagar seu perfil? (\"sim\" para afirmativo, qualquer outra coisa para negativo)");
-        if(scanner.next().equals("sim")){
+            for(User friend : loggedUser.getFriends()){
+                friend.getFriends().remove(loggedUser);
+            }
 
-            userStorage.getMemoryDatabase().remove(loggedUser.getUid());
-            userStorage.getUsernameToUidDatabase().remove(loggedUser.getUsername());
+            loggedUser.getFeed().setPosts(new ArrayList<>());
+            loggedUser.getFeed().setHistory(new HashMap<>());
+            loggedUser.getFeed().setLastSeen(new HashMap<>());
 
-            this.loggedUser = null;
-            System.out.println("Seu perfil foi excluído e você saiu do sistema, volte sempre...");
+            loggedUser.setUsername("USER_DELETED");
+            loggedUser.setDisplayName("");
+            loggedUser.setBirthDate("");
+            loggedUser.setBirthPlace("");
+            loggedUser.setCurrentCity("");
+            loggedUser.setPassword("");
+            loggedUser.setId("");
+
+            loggedUser = null;
             return true;
-        } else {
-            System.out.println("Você escolheu não apagar seu perfil, voltando para o menu principal...");
-            return false;
         }
+
+        return false;
     }
 
-    public User updateUserDialog(){
+    public User updateUser(){
         UserStorage userStorage = StorageFactory.getUserStorage();
         System.out.println("iFace > Edição de Perfil\n");
 
-        if(loggedUser == null){
-            System.out.println("Você ainda não está logado... Vamos fazer seu login\n");
-            loginDialog();
-        } else {
-            System.out.println("Olá "+loggedUser.getUsername()+"... Vamos alterar seu perfil!\n");
-        }
+        loggedUser.setDisplayName(CLI.dialogUpdateDisplayName(loggedUser.getDisplayName()));
+        loggedUser.setBirthDate(CLI.dialogUpdateBirthDate(loggedUser.getBirthDate()));
+        loggedUser.setBirthPlace(CLI.dialogUpdateBirthCity(loggedUser.getBirthPlace()));
+        loggedUser.setCurrentCity(CLI.dialogUpdateCurrentCity(loggedUser.getCurrentCity()));
 
-        System.out.println("Atualmente, o único atributo de perfil disponível é \"Display Name\": "+loggedUser.getDisplayName()+", seu nome...");
-        System.out.println("Deseja realmente alterar? (\"sim\" para afirmativo, qualquer outra coisa para negativo)");
-        if(scanner.next().equals("sim")){
-            System.out.println("Informe seu primeiro nome (sem espaços): ");
-            String firstDisplayName = scanner.next();
-            System.out.println("Informe seu último nome (sem espaços): ");
-            String lastDisplayName = scanner.next();
-
-            String displayName = firstDisplayName.concat(" ").concat(lastDisplayName);
-            loggedUser.setDisplayName(displayName);
-
-            userStorage.getMemoryDatabase().put(loggedUser.getUid(), loggedUser);
-        } else {
-            System.out.println("Você escolheu não alterar seu perfil, voltando para o menu principal...");
-        }
-
+        StorageFactory.getUserStorage().getMemoryDatabase().put(loggedUser.getId(), loggedUser);
         return loggedUser;
     }
 
-    public User createUserDialog(){
-        UserStorage userStorage = StorageFactory.getUserStorage();
+    public User createUser(){
+        Scanner scanner = new Scanner(System.in);
 
-        System.out.println("iFace > Criar novo usuário\n");
-
-        System.out.println("Informe seu login desejado (sem espaços): ");
-        String username = scanner.next();
-        while(userStorage.usernameAlreadyExists(username)){
-            System.out.println("\n O login \""+username+"\" já existe...");
-            System.out.println("Informe seu login desejado (sem espaços): ");
-            username = scanner.next();
-        }
-
-        String uid = generateRandomUid();
-        while(userStorage.uidAlreadyExists(uid)){
-            uid = generateRandomUid();
-        }
-
-        System.out.println("Informe seu primeiro nome (sem espaços): ");
-        String firstDisplayName = scanner.next();
-        System.out.println("Informe seu último nome (sem espaços): ");
-        String lastDisplayName = scanner.next();
-
-        String displayName = firstDisplayName.concat(" ").concat(lastDisplayName);
-
-        System.out.println("Informe sua senha (sem espaços): ");
-        String password = scanner.next();
+        String username = CLI.dialogNewUsername();
+        String password = CLI.dialogNewPassword();
 
         User user = new User();
         user.setUsername(username);
-        user.setDisplayName(displayName);
-        user.setUid(uid);
         user.setPassword(password);
+        user.setFeed(StorageFactory.getFeedStorage().createFeed("Friends"));
+        user.setFriends(new ArrayList<>());
+        user.setFriendInvites(new ArrayList<>());
+        user.setCommunities(new ArrayList<>());
 
-        userStorage.storeUser(user);
-
-        System.out.println("Usuário criado com sucesso!");
+        StorageFactory.getUserStorage().createUser(user);
         return user;
     }
 
-    public User loginDialog(){
+    public User login(){
         if(StorageFactory.getUserStorage().isEmpty()){
-            User newUser = createUserDialog();
+            User newUser = createUser();
             this.loggedUser = newUser;
             return newUser;
         }
 
-        System.out.println("iFace > Entrar\n");
-
-        System.out.println("Informe seu login (sem espaços): ");
-        String login = scanner.next();
-        System.out.println("Informe sua senha (sem espaços): ");
-        String password = scanner.next();
-
-        User user = StorageFactory.getUserStorage().attemptLogin(login, password);
+        User user = StorageFactory.getUserStorage().attemptLogin(
+                CLI.dialogAskUsername("Login"),
+                CLI.dialogAskPassword("Login"));
 
         while(user == null){
-            clearScreen();
+            System.out.println("\nIncorrect username or password... Try again");
+            CLI.getEnter();
 
-            System.out.println("\n---> Login ou senha incorretos, tente novamente...");
-
-            System.out.println("Informe seu login (sem espaços): ");
-            login = scanner.next();
-            System.out.println("Informe sua senha (sem espaços): ");
-            password = scanner.next();
-
-            user = StorageFactory.getUserStorage().attemptLogin(login, password);
+            user = StorageFactory.getUserStorage().attemptLogin(
+                    CLI.dialogAskUsername("Login"),
+                    CLI.dialogAskPassword("Login"));
         }
 
-        System.out.println("Login realizado com sucesso!");
         this.loggedUser = user;
         return user;
     }
 
-    public boolean logoutDialog(){
-        UserStorage userStorage = StorageFactory.getUserStorage();
+    public boolean logout(){
+        boolean confirmation = CLI.dialogConfirmLogout();
 
-        System.out.println("iFace > Sair\n");
-
-        System.out.println("Deseja realmente sair? (\"sim\" para afirmativo, qualquer outra coisa para negativo)");
-        if(scanner.next().equals("sim")){
+        if(confirmation){
             this.loggedUser = null;
-            System.out.println("Você saiu do sistema, volte sempre...");
-            return true;
-        } else {
-            System.out.println("Você escolheu não sair, voltando para o menu principal...");
-            return false;
         }
+
+        return confirmation;
     }
 
-    public String displayLoggedUser(){
-        if(loggedUser == null){
-            return "Não há usuário logado";
-        }
-        return displayUser(loggedUser);
-    }
-
-    public String displayUser(User user){
-        return user.getUid()+" {"
-                +"\n    username: "+user.getUsername()
-                +"\n    DisplayName: "+user.getDisplayName()
-                +"\n    Password: "+user.getPassword()
-                +"\n}";
+    public void showLoggedUser(){
+        if(loggedUser == null) System.out.println("Não há usuário logado");
+        else System.out.println(CLI.displayUser(loggedUser));
+        CLI.getEnter();
     }
 
     public User getLoggedUser() {
         return loggedUser;
     }
-
 }

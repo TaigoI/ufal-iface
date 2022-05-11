@@ -1,204 +1,163 @@
 package br.ufal.ic.prog2.Controller;
 
-import br.ufal.ic.prog2.Bean.Community;
-import br.ufal.ic.prog2.Bean.Post;
-import br.ufal.ic.prog2.Bean.User;
-import br.ufal.ic.prog2.DAO.CommunityStorage;
+import br.ufal.ic.prog2.Factory.ViewFactory;
+import br.ufal.ic.prog2.Model.Bean.Community;
+import br.ufal.ic.prog2.Model.Bean.Feed;
+import br.ufal.ic.prog2.Model.Bean.User;
+import br.ufal.ic.prog2.Model.DAO.CommunityStorage;
 import br.ufal.ic.prog2.Factory.ControllerFactory;
 import br.ufal.ic.prog2.Factory.StorageFactory;
+import br.ufal.ic.prog2.View.CommunityCLI;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 
 import java.util.*;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 public class CommunityController {
 
-    private static final Map<String, Map<String, ArrayList<Post>>> communitiesHistory = new HashMap<>();
-    private static final Map<String, Map<String, Integer>> communitiesPosition = new HashMap<>();
+    private CommunityCLI CLI;
+    private CommunityStorage STORAGE;
 
-    private static final Scanner scanner = new Scanner(System.in);
+    public CommunityController(){
+        this.CLI =  ViewFactory.getCommunitiesCLI();
+        this.STORAGE = StorageFactory.getCommunityStorage();
+    }
 
-    private String generateRandomCid(){
-        Random random = new Random();
-        int rCid = random.nextInt(999999998);
-        String preUid =  String.valueOf(rCid);
-        String cid = "";
-        for( int i = 0; i < (9 - preUid.length()); i++){
-            cid = cid.concat("0");
-        }
-        cid = cid.concat(preUid);
+    public void sendRequest(Community community){
+        User loggedUser = ControllerFactory.getUserController().getLoggedUser();
+        community.getRequestedMemberships().add(loggedUser);
+    }
 
-        return cid;
+    public void removeRequest(Community community, String username){
+        community.getRequestedMemberships().removeIf(u -> u.getUsername().equals(username));
     }
 
     public Community createCommunityDialog(){
+        User loggedUser = ControllerFactory.getUserController().getLoggedUser();
+        String action = "Create Community";
         CommunityStorage communityStorage = StorageFactory.getCommunityStorage();
 
-        System.out.println("iFace > Criar nova comunidade\n");
+        CLI.showHeader();
 
-        System.out.println("Informe seu nome desejado (sem espaços): ");
-        String name = scanner.next();
-        while(communityStorage.nameAlreadyExists(name)){
-            System.out.println("\n O nome \""+name+"\" já existe...");
-            System.out.println("Informe seu nome desejado (sem espaços): ");
-            name = scanner.next();
-        }
-
-        String cid = generateRandomCid();
-        while(communityStorage.cidAlreadyExists(cid)){
-            cid = generateRandomCid();
-        }
-
-        System.out.println("Informe a Descrição: ");
-        String description = scanner.nextLine();
-        if(description.equals("")){
-            description = scanner.nextLine();
-        }
+        String name = CLI.dialogNewCommunityName(action);
+        String description = CLI.dialogNewCommunityDescription(action);
 
         Community community = new Community();
-        community.setCid(cid);
         community.setName(name);
-        community.setOwner(ControllerFactory.getUserController().getLoggedUser());
+        community.setOwner(loggedUser);
         community.setDescription(description);
 
-        communityStorage.storeCommunity(community);
+        Feed feed = FeedController.initializeNewFeed("Members of #"+name);
+        community.setFeed(feed);
 
-        System.out.println("Comunidade criada com sucesso!");
+        ArrayList<User> members = new ArrayList<>();
+        members.add(community.getOwner());
+        community.setMembers(members);
+
+        loggedUser.getCommunities().add(community);
+        communityStorage.createCommunity(community);
         return community;
     }
 
-    public String listCommunities(){
+    public String listAllCommunities(){
         String result = "";
         for (String cid : StorageFactory.getCommunityStorage().getMemoryDatabase().keySet()){
-            Community community = StorageFactory.getCommunityStorage().getCommunityByCid(cid);
-            result = result.concat(displayCommunity(community)+"\n");
+            Community community = StorageFactory.getCommunityStorage().getCommunityById(cid);
+            result = result.concat(CLI.getCommunityAsText(community)+"\n");
         }
         return result;
     }
 
-    public Post createPost(String cid, String uid) {
-        if(!communitiesHistory.containsKey(cid)){
-            communitiesHistory.put(cid, new HashMap<>());
-            communitiesPosition.put(cid, new HashMap<>());
+    public String listCommunities(User u){
+        String result = "";
+        for (Community community : u.getCommunities()){
+            result = result.concat(CLI.getCommunityAsText(community)+"\n");
         }
-        Map<String, ArrayList<Post>> history = communitiesHistory.get(cid);
-        Map<String, Integer> position = communitiesPosition.get(cid);
-
-        Community community = StorageFactory.getCommunityStorage().getCommunityByCid(cid);
-        System.out.println("iFace [+Post@"+community.getName()+"] <@"+ ControllerFactory.getUserController().getLoggedUser().getUsername()+">\n");
-        User user = StorageFactory.getUserStorage().getUserByUid(uid);
-
-        Post newPost = new Post();
-        newPost.setOwner(user);
-
-        System.out.println("Informe o Título do Post: ");
-        String title = scanner.nextLine();
-        System.out.println("Informe o Texto do Post: ");
-        String text = scanner.nextLine();
-
-        newPost.setTitle(title);
-        newPost.setMessage(text);
-
-        if(!history.containsKey(uid)){
-            history.put(uid, new ArrayList<>());
-            position.put(uid, -1);
-        }
-
-        Post returnPost = StorageFactory.getCommunityStorage().storePost(community.getCid(), newPost);
-        history.get(uid).add(returnPost);
-        position.put(uid, history.get(uid).size()-1);
-        return returnPost;
+        return result;
     }
 
-    public Post nextPost(String cid, String uid) {
-        if(!communitiesHistory.containsKey(cid)){
-            communitiesHistory.put(cid, new HashMap<>());
-            communitiesPosition.put(cid, new HashMap<>());
-        }
-        Map<String, ArrayList<Post>> history = communitiesHistory.get(cid);
-        Map<String, Integer> position = communitiesPosition.get(cid);
+    public String listAllMembers(Community community){
+        String result = "Owner: "+ViewFactory.getUserCLI().displayCompactUser(community.getOwner())+"\n";
 
-        if(!history.containsKey(uid)){
-            history.put(uid, new ArrayList<>());
-            position.put(uid, -1);
-        }
 
-        if(position.get(uid)+1 >= history.get(uid).size()){
-            User user = StorageFactory.getUserStorage().getUserByUid(uid);
-            Post next = StorageFactory.getFeedStorage().findNextPost(user);
-            if(next != null){
-                history.get(uid).add(next);
+        ArrayList<User> members = new ArrayList<>(community.getMembers());
+        members.remove(community.getOwner());
+
+        for (User member : members){
+            result = result.concat(ViewFactory.getUserCLI().displayCompactUser(member)+"\n");
+        }
+        return result;
+    }
+
+    private static class CommunityDistance{
+        public Double distance;
+        public String name;
+    }
+
+    public ArrayList<String> sortTitlesBySearchName(String searchName){
+        LevenshteinDistance distanceCalculator = new LevenshteinDistance();
+        Set<String> names = StorageFactory.getCommunityStorage().getNameToCidDatabase().keySet();
+        ArrayList<CommunityDistance> distances = new ArrayList<>();
+
+        for (String communityName : names){
+            Integer distance = distanceCalculator.apply(communityName, searchName);
+            CommunityDistance d = new CommunityDistance();
+            d.distance = Double.valueOf(distance) / (max(communityName.length(), searchName.length()));
+            if(communityName.contains(searchName)){
+                d.distance = d.distance - 0.5;
             }
 
-            position.put(uid, history.get(uid).size()-1);
-            return next;
-        } else {
-            position.put(uid, position.get(uid)+1);
-            return history.get(uid).get(position.get(uid));
+            d.name = communityName;
+            distances.add(d);
         }
+
+        distances.sort(Comparator.comparingDouble(c -> c.distance));
+
+        ArrayList<String> response = new ArrayList<>();
+        for (CommunityDistance d : distances){
+            response.add(d.name);
+        }
+
+        return response;
     }
 
-    public Post previousPost(String cid, String uid) {
-        if(!communitiesHistory.containsKey(cid)){
-            communitiesHistory.put(cid, new HashMap<>());
-            communitiesPosition.put(cid, new HashMap<>());
-        }
-        Map<String, ArrayList<Post>> history = communitiesHistory.get(cid);
-        Map<String, Integer> position = communitiesPosition.get(cid);
+    public String searchCommunitiesByName() {
+        String name = CLI.dialogAskCommunityName("Open via Search");
+        ArrayList<String> sortedSearch = sortTitlesBySearchName(name);
 
-        if(!history.containsKey(uid)){
-            history.put(uid, new ArrayList<>());
-            position.put(uid, -1);
+
+        for(int i = 0; i < sortedSearch.size(); i++){
+            Community c = StorageFactory.getCommunityStorage().getCommunityByName(sortedSearch.get(i));
+            if(c.getMembers().contains(ControllerFactory.getUserController().getLoggedUser())){
+                sortedSearch.set(i, sortedSearch.get(i)+" (View)");
+            } else {
+                sortedSearch.set(i, sortedSearch.get(i)+" (Request Membership)");
+            }
         }
 
-        if(position.get(uid).equals(0)){
-            position.put(uid, -1);
-            return history.get(uid).get(0);
-        }
-        else if(position.get(uid)-1 <= 0){
-            position.put(uid, -1);
-            return null;
-        } else {
-            position.put(uid, position.get(uid)-1);
-            return history.get(uid).get(position.get(uid));
-        }
+        String response = CLI.dialogSearchByName(sortedSearch, name);
+        if(response == null) return null;
+
+        return response.replace(" (View)","").replace(" (Request Membership)","");
     }
 
-    public String displayPost(Post post){
-        if(post == null){
-            return "Não foram encontrados posts.\n";
+    public void approveMember(Community community){
+        String username = ViewFactory.getCommunitiesCLI().dialogMembershipRequests(community);
+
+        if(username == null) return;
+
+        removeRequest(community, username);
+
+        if(StorageFactory.getUserStorage().usernameDoesntExists(username)){
+            ViewFactory.getUserCLI().failedToFind(username);
+            return;
         }
 
-        return ""
-                +"> "+ post.getTitle()+"\n"
-                +"@" + post.getOwner().getUsername()+"   ("+ (post.getTarget()) +")\n\n"
-                +"\""+post.getMessage().replaceAll("(.{1,100})\\s+", "$1\n")+"\"\n";
-    }
-
-    public String displayCommunity(Community community){
-        if(community == null){
-            return "Comunidade indefinida.\n";
-        }
-
-        return ""
-                + community.getCid() +"{\n"
-                +"    name:        \"" + community.getName() + "\"\n"
-                +"    description: \"" + community.getDescription().replaceAll("(.{0,70})\\s+", "$1\n")+"\"\n";
-    }
-
-    public Post lastPost(String cid, String uid) {
-        if(!communitiesHistory.containsKey(cid)){
-            communitiesHistory.put(cid, new HashMap<>());
-            communitiesPosition.put(cid, new HashMap<>());
-        }
-        Map<String, ArrayList<Post>> history = communitiesHistory.get(cid);
-        Map<String, Integer> position = communitiesPosition.get(cid);
-
-        if(!history.containsKey(uid)){
-            history.put(uid, new ArrayList<>());
-            position.put(uid, -1);
-        }
-
-        position.put(uid, history.get(uid).size()-1);
-        return history.get(uid).get(position.get(uid));
+        User m = StorageFactory.getUserStorage().getUserByUsername(username);
+        community.getMembers().add(m);
+        m.getCommunities().add(community);
     }
 
 }
