@@ -2,7 +2,7 @@ package br.ufal.ic.prog2.Model.Bean;
 
 import java.io.Serializable;
 
-public class Post<T> implements Serializable {
+public class Post implements Serializable {
     private User owner;
     private String title;
     private String message;

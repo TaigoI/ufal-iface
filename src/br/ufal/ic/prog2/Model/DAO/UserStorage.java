@@ -8,13 +8,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class UserStorage {
+public class UserStorage extends BaseStorage<User>{
 
-    private final Map<String, User> memoryDatabase;
     private final Map<String, String> usernameToUidDatabase;
 
+    protected String ID_PREFIX = "U";
+
     public UserStorage(){
-        this.memoryDatabase = new HashMap<>();
         this.usernameToUidDatabase = new HashMap<>();
     }
 
@@ -26,14 +26,20 @@ public class UserStorage {
         return memoryDatabase.containsKey(uid);
     }
 
-    public boolean usernameAlreadyExists(String name){
-        return usernameToUidDatabase.containsKey(name);
+    public boolean usernameDoesntExists(String name){
+        return !usernameToUidDatabase.containsKey(name);
     }
 
     public User getUserById(String uid){
         if(memoryDatabase.containsKey(uid)) return memoryDatabase.get(uid);
         return null;
     }
+
+    public User getUserByUsername(String uname){
+        if(usernameToUidDatabase.containsKey(uname)) return memoryDatabase.get(usernameToUidDatabase.get(uname));
+        return null;
+    }
+
 
     public User attemptLogin(String username, String password){
         if(username != null && usernameToUidDatabase.containsKey(username)) {
@@ -46,34 +52,25 @@ public class UserStorage {
         return null;
     }
 
-    public User getUserByDisplayName(String name){
-        if(usernameToUidDatabase.containsKey(name)){
-            return getUserById(usernameToUidDatabase.get(name));
-        }
-
-        return null;
-    }
-
     public CreateUserResponse createUser(User user){
         if(user != null){
-            if(user.getId() != null && !memoryDatabase.containsKey(user.getId())){
-                if(user.getUsername() != null && !usernameToUidDatabase.containsKey(user.getUsername())) {
-                    if(user.getFriends() == null){user.setFriends(new ArrayList<>());}
-                    if(user.getFriends() == null){user.setFriendInvites(new ArrayList<>());}
-
-                    memoryDatabase.put(user.getId(), user);
-                    usernameToUidDatabase.put(user.getUsername(), user.getId());
-                    return CreateUserResponse.OK;
-                }
-                return CreateUserResponse.NAME_ALREADY_EXISTS;
+            String id = null;
+            while(id == null || memoryDatabase.containsKey(id)){
+                id = generateId(ID_PREFIX);
             }
-            return CreateUserResponse.UID_ALREADY_EXISTS;
+
+            user.setId(id);
+            if(user.getUsername() != null && !usernameToUidDatabase.containsKey(user.getUsername())) {
+                if(user.getFriends() == null){user.setFriends(new ArrayList<>());}
+                if(user.getFriends() == null){user.setFriendInvites(new ArrayList<>());}
+
+                memoryDatabase.put(user.getId(), user);
+                usernameToUidDatabase.put(user.getUsername(), user.getId());
+                return CreateUserResponse.OK;
+            }
+            return CreateUserResponse.NAME_ALREADY_EXISTS;
         }
         return CreateUserResponse.INVALID_USER;
-    }
-
-    public Map<String, User> getMemoryDatabase() {
-        return memoryDatabase;
     }
 
     public Map<String, String> getUsernameToUidDatabase() {

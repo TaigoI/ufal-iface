@@ -1,5 +1,6 @@
 package br.ufal.ic.prog2;
 
+import br.ufal.ic.prog2.Factory.ViewFactory;
 import br.ufal.ic.prog2.Model.Bean.Post;
 import br.ufal.ic.prog2.Model.Bean.User;
 import br.ufal.ic.prog2.Factory.ControllerFactory;
@@ -19,16 +20,11 @@ public class Main {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        String topMessage = "";
         while(true){
-            if(topMessage.equals("END")){return;}
-            clearScreen();
-            if(!topMessage.equals("")){System.out.println("\n---> "+topMessage+"\n");}
-
             if(ControllerFactory.getUserController().getLoggedUser() == null){
-                topMessage = publicMainPage(scanner);
+                if (ControllerFactory.getPagesController().publicMainPage()) return;
             } else {
-                topMessage = privateMainPage(scanner);
+                ControllerFactory.getPagesController().privateMainPage();
             }
         }
     }
@@ -43,21 +39,21 @@ public class Main {
         post.setTitle("This is how you Lorem Ipsum");
         post.setMessage("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi iaculis vitae lectus vitae aliquet. Nam at bibendum tortor. Quisque egestas lorem id mauris vestibulum vehicula. Nullam suscipit volutpat tempor. Curabitur vitae metus elit. Nulla aliquam volutpat dapibus. Aenean non pulvinar nisi. Aliquam erat volutpat.");
 
-        System.out.println(ControllerFactory.getFeedController().displayPost(post));
+        ViewFactory.getPostCLI().showPostAsText(post);
     }
 
     public static void testUserController() {
         UserController controller = new UserController(); //TODO: Jogar num factory com flyweight
-        controller.createUserDialog();
-        controller.loginDialog();
-        controller.updateUserDialog();
-        System.out.println(controller.displayLoggedUser());
-        controller.logoutDialog();
-        controller.createUserDialog();
-        controller.loginDialog();
-        System.out.println(controller.displayLoggedUser());
-        controller.deleteUserDialog();
-        controller.loginDialog();
+        controller.createUser();
+        controller.login();
+        controller.updateUser();
+        controller.showLoggedUser();
+        controller.logout();
+        controller.createUser();
+        controller.login();
+        controller.showLoggedUser();
+        controller.deleteUser();
+        controller.login();
     }
 
     public static void testUserStorage(){

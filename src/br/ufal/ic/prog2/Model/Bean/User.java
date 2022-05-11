@@ -7,11 +7,17 @@ public class User implements Serializable {
 
     private String id = null;
     private String username = null;
-    private String displayName = null;
+    private String displayName = "";
+    private String birthPlace = "";
+    private String birthDate = "";
+    private String currentCity = "";
+
     private String password = null;
 
     private ArrayList<User> friends;
     private ArrayList<User> friendInvites;
+
+    private ArrayList<Community> communities;
 
     private Feed feed;
 
@@ -40,6 +46,30 @@ public class User implements Serializable {
         this.displayName = displayName;
     }
 
+    public String getBirthPlace() {
+        return birthPlace;
+    }
+
+    public void setBirthPlace(String birthPlace) {
+        this.birthPlace = birthPlace;
+    }
+
+    public String getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(String birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public String getCurrentCity() {
+        return currentCity;
+    }
+
+    public void setCurrentCity(String currentCity) {
+        this.currentCity = currentCity;
+    }
+
     public String getPassword() {
         return password;
     }
@@ -62,6 +92,14 @@ public class User implements Serializable {
 
     public void setFriendInvites(ArrayList<User> friendInvites) {
         this.friendInvites = friendInvites;
+    }
+
+    public ArrayList<Community> getCommunities() {
+        return communities;
+    }
+
+    public void setCommunities(ArrayList<Community> communities) {
+        this.communities = communities;
     }
 
     public Feed getFeed() {

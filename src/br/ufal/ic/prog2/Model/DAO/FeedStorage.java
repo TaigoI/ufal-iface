@@ -12,10 +12,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
-public class FeedStorage extends BaseStorage {
+public class FeedStorage extends BaseStorage<Feed> {
+
+    protected String ID_PREFIX = "F";
 
     public FeedStorage(){
-        memoryDatabase.put("public", FeedController.initializeNewFeed());
+        memoryDatabase.put("public", FeedController.initializeNewFeed("Public"));
     }
 
     public Feed getFeedById(String id){
@@ -26,19 +28,19 @@ public class FeedStorage extends BaseStorage {
         return null;
     }
 
-    public Feed createFeed(){
+    public Feed createFeed(String target){
         String id = null;
         while(id == null || memoryDatabase.containsKey(id)){
-            id = generateId();
+            id = generateId(ID_PREFIX);
         }
 
-        Feed f = FeedController.initializeNewFeed();
+        Feed f = FeedController.initializeNewFeed(target);
         f.setId(id);
         return f;
     }
 
     public Post storePublicPost(Post newPost){
-        newPost.setTargetName("público");
+        newPost.setTargetName("Public");
         memoryDatabase.get("public");
         return newPost;
     }

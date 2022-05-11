@@ -1,7 +1,9 @@
 package br.ufal.ic.prog2.View;
 
+import br.ufal.ic.prog2.Factory.ControllerFactory;
+import br.ufal.ic.prog2.Factory.StorageFactory;
 import br.ufal.ic.prog2.Model.Bean.Community;
-import br.ufal.ic.prog2.Model.Bean.Post;
+import br.ufal.ic.prog2.Model.Bean.User;
 
 import java.util.ArrayList;
 
@@ -12,73 +14,93 @@ public class CommunityCLI extends BaseCLI {
 
     public void showHeader(){
         super.showHeader();
-        System.out.println(" > Communities");
+        System.out.println("> Communities");
     }
+
+    @Override
     public void showHeader(String action){
         showHeader();
-        System.out.println(" + "+action);
+        System.out.println("+ "+action);
     }
 
-    public String dialogCommunityName(String action) {
+    public String dialogNewCommunityName(String action) {
         showHeader(action);
-        return getNextWord("Nome: ");
-    }
-
-    public String dialogCommunityDescription(String action) {
-        showHeader(action);
-        return getNextSentence("Descrição: ");
-    }
-
-    public String dialogSearchByName(ArrayList<String> sortedSearch) {
-        showHeader();
-        System.out.println("Busca de Comunidades");
-
-        String name = getNextWord("Informe o termo de busca: ");
-
-        int pI = 0;
-        int pF = min(5,sortedSearch.size()-1);
+        String name = getNextSentence("Community Name: ");
+        name = name.replace(" ","_");
         while(true){
-            int j = 1;
-            ArrayList<Integer> indices = new ArrayList<>();
-            ArrayList<String> descriptions = new ArrayList<>();
+            if(StorageFactory.getCommunityStorage().nameDoesntExists(name)) return name;
 
-            for(int i = pI; i <= pF; i++, j++){
-                if(j>5) break;
-                indices.add(j); descriptions.add(sortedSearch.get(i));
-            }
-
-            indices.add(-1);
-            indices.add(0); descriptions.add("Voltar");
-            indices.add(6); descriptions.add("Anterior");
-            indices.add(7); descriptions.add("Próxima");
-
-            int option = getNextOption("\nEscolha a opção:", indices, descriptions);
-
-            if(option == 0){
-                return null;
-            } else if (option == 6){
-                pI = max(0,pI-5); pF = min(pF-5,sortedSearch.size()-1);
-            } else if (option == 7){
-                pI = max(0,pI+5); pF = min(pF+5,sortedSearch.size()-1);
-            } else if (option >= 1 && option <= 5){
-                return sortedSearch.get(option-1);
-            }
+            name = getNextWord("The chosen name already exists... try again\nCommunity Name (no spaces): ");
         }
+    }
+
+    public String dialogNewCommunityDescription(String action) {
+        showHeader(action);
+        return getNextSentence("Community Description: ");
+    }
+
+    public String dialogAskCommunityName(String action) {
+        showHeader(action);
+        return getNextWord("Community name: ");
+    }
+
+    public String dialogSearchByName(ArrayList<String> sortedSearch, String searchTerm) {
+
+
+        return getFromPagedMenu("Search by Name", sortedSearch, searchTerm, 5);
     }
 
     public String getCommunityAsText(Community community){
         if(community == null){
-            return "Comunidade indefinida.\n";
+            return "Undefined Community.\n";
         }
 
         return ""
                 + community.getId() +": {\n"
-                +String.valueOf("name:        \"" + community.getName() + "\"\n").indent(4)
-                +String.valueOf("description: \"" + community.getDescription().replaceAll("(.{0,70})\\s+", "$1\n")+"\"\n").indent(4)
+                + ("name:        \"" + community.getName() + "\"\n").indent(4)
+                + ("description: \"" + community.getDescription().replaceAll("(.{0,70})\\s+", "$1\n") + "\"\n").indent(4)
                 +"}\n";
+    }
+
+    public String getCompactCommunity(Community community){
+        return "#"+community.getName()+" ("+community.getId()+")";
     }
 
     public void showCommunityAsText(Community community){
         System.out.println(getCommunityAsText(community));
+    }
+
+    public void displayRequestSent(Community community){
+        showHeader("Membership");
+        System.out.println("\nSent request to "+ getCompactCommunity(community));
+        getEnter();
+    }
+
+    public void failedToFind(String name){
+        System.out.println("Error: Failed to find community "+name);
+        getEnter();
+    }
+
+    public String dialogMembershipRequests(Community community) {
+        User loggedUser = ControllerFactory.getUserController().getLoggedUser();
+        ArrayList<String> requests = new ArrayList<>();
+
+        for (User m : new ArrayList<>(community.getRequestedMemberships())) {
+            if(community.getMembers().contains(m)){
+                community.getMembers().remove(m);
+            } else {
+                requests.add("Accept request from @"+m.getUsername());
+            }
+        }
+
+        String response = getFromPagedMenu("Membership Requests", requests, null, 5);
+        if(response == null){return null;}
+
+        return response.replace("Accept request from @","");
+    }
+
+    public void displayAllMembers(Community community){
+        System.out.println("\n"+ControllerFactory.getCommunityController().listAllMembers(community));
+        getEnter();
     }
 }

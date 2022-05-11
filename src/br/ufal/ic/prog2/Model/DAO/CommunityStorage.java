@@ -4,17 +4,16 @@ import br.ufal.ic.prog2.Model.Bean.Community;
 import br.ufal.ic.prog2.Model.DAO.ResponseEnums.CreateCommunityResponse;
 import br.ufal.ic.prog2.Factory.ControllerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CommunityStorage extends BaseStorage{
+public class CommunityStorage extends BaseStorage<Community>{
 
-    private final Map<String, Community> memoryDatabase;
     private final Map<String, String> nameToCidDatabase;
     protected String ID_PREFIX = "C";
 
     public CommunityStorage(){
-        this.memoryDatabase = new HashMap<>();
         this.nameToCidDatabase = new HashMap<>();
     }
 
@@ -26,8 +25,8 @@ public class CommunityStorage extends BaseStorage{
         return memoryDatabase.containsKey(cid);
     }
 
-    public boolean nameAlreadyExists(String name){
-        return nameToCidDatabase.containsKey(name);
+    public boolean nameDoesntExists(String name){
+        return !nameToCidDatabase.containsKey(name);
     }
 
     public Community getCommunityById(String cid){
@@ -49,13 +48,19 @@ public class CommunityStorage extends BaseStorage{
         if(community != null){
             String id = null;
             while(id == null || memoryDatabase.containsKey(id)){
-                id = generateId();
+                id = generateId(ID_PREFIX);
             }
 
             community.setId(id);
             if(community.getName() != null && !nameToCidDatabase.containsKey(community.getName())) {
                 if(community.getOwner() == null){
                     community.setOwner(ControllerFactory.getUserController().getLoggedUser());
+                }
+                if(community.getMembers() == null){
+                    community.setMembers(new ArrayList<>());
+                }
+                if(community.getRequestedMemberships() == null){
+                    community.setRequestedMemberships(new ArrayList<>());
                 }
 
                 memoryDatabase.put(community.getId(), community);
@@ -65,10 +70,6 @@ public class CommunityStorage extends BaseStorage{
             return CreateCommunityResponse.NAME_ALREADY_EXISTS;
         }
         return CreateCommunityResponse.INVALID_COMMUNITY;
-    }
-
-    public Map<String, Community> getMemoryDatabase() {
-        return memoryDatabase;
     }
 
     public Map<String, String> getNameToCidDatabase() {

@@ -1,144 +1,196 @@
 package br.ufal.ic.prog2.Controller;
 
 import br.ufal.ic.prog2.Factory.ControllerFactory;
+import br.ufal.ic.prog2.Factory.StorageFactory;
 import br.ufal.ic.prog2.Factory.ViewFactory;
+import br.ufal.ic.prog2.Model.Bean.Community;
+import br.ufal.ic.prog2.Model.Bean.Feed;
 import br.ufal.ic.prog2.Model.Bean.Post;
 import br.ufal.ic.prog2.Model.Bean.User;
-import br.ufal.ic.prog2.View.CommunityCLI;
 import br.ufal.ic.prog2.View.PagesCLI;
 
-import java.util.Scanner;
+import java.util.ArrayList;
 
 public class PagesController {
 
-    private PagesCLI CLI;
+    private final PagesCLI CLI;
 
-    PagesController(){
+    public PagesController(){
         this.CLI = ViewFactory.getPagesCLI();
     }
 
-    private String publicMainPage(Scanner scanner){
-        int option = CLI.dialogUnloggedOptions();
-
-        switch (option) {
-            case 0 -> {
-                return "END";
-            }
-            case 1 -> ControllerFactory.getUserController().createUserDialog();
-            case 2 -> ControllerFactory.getUserController().loginDialog();
-            default -> {
-                return "A opção escolhida é inválida...";
-            }
+    public boolean publicMainPage(){
+        switch (CLI.dialogUnloggedOptions()) {
+            case 0 -> {return true;}
+            case 1 -> ControllerFactory.getUserController().createUser();
+            case 2 -> ControllerFactory.getUserController().login();
         }
-        return "";
+        return false;
     }
 
-    private String privateMainPage(Scanner scanner){
-        int entrada = CLI.dialogMainMenu();
-
-        switch (entrada) {
-            case 0 -> ControllerFactory.getUserController().logoutDialog();
-            case 1 -> feedPage(scanner);
-            case 2 -> communitiesExplorerPage(scanner);
-            case 3 -> chatsPage(scanner);
-            case 4 -> profilePage(scanner);
-            default -> {
-                return "A opção escolhida é inválida...";
-            }
+    public void privateMainPage(){
+        switch (CLI.dialogMainMenu()) {
+            case 1 -> feedPage();
+            case 2 -> communitiesPage();
+            case 3 -> chatsPage();
+            case 4 -> profilePage();
+            case 5 -> friendsPage();
         }
-        return "";
     }
 
-    private String feedPage(Scanner scanner){
-        String topMessage = "";
-        Post post =
+    public void feedPage(){
+        User loggedUser = ControllerFactory.getUserController().getLoggedUser();
+        Post post = ControllerFactory.getFeedController().getFriendsOrPublicNextPost(loggedUser);
 
         while(true){
-            if(!topMessage.equals("")){System.out.println("\n---> "+topMessage+"\n"); topMessage="";}
-
-
-            int entrada = CLI.dialogMainFeed(post);
-
-            switch (entrada) {
-                case 0 -> {
-                    return topMessage;
-                }
+            switch (CLI.dialogMainFeed(post)) {
+                case 0 -> {return;}
                 case 1 -> {
-                    User loggedUser = ControllerFactory.getUserController().getLoggedUser();
-                    ControllerFactory.getFeedController().createPost(loggedUser.getFeed(), loggedUser);
-                    ControllerFactory.getFeedController().
-                    post = ControllerFactory.getFeedController().lastPost(loggedUser.getFeed(), loggedUser);
+                    switch (ViewFactory.getPostCLI().dialogPostViewControl()){
+                        case 0 -> post = ControllerFactory.getFeedController().createPublicPost(loggedUser);
+                        case 1 -> post = ControllerFactory.getFeedController().createPost(loggedUser.getFeed(), loggedUser);
+                    }
                 }
-                case 2 -> {
-                    post = ControllerFactory.getFeedController().nextPost(ControllerFactory.getUserController().getLoggedUser().getId());
-                }
-                case 3 -> {
-                    post = ControllerFactory.getFeedController().previousPost(ControllerFactory.getUserController().getLoggedUser().getId());
-                }
-                default -> {
-                    topMessage = "A opção escolhida é inválida...";
-                }
+                case 2 -> post = ControllerFactory.getFeedController().getFriendsOrPublicNextPost(loggedUser);
+                case 3 -> post = ControllerFactory.getFeedController().previousPost(loggedUser);
             }
         }
-
-        return topMessage;
     }
 
-    private static void communitiesExplorerPage(Scanner scanner){
-        int entrada;
-        String topMessage = "";
-
-        boolean flag = true;
-
-        while(flag){
-            clearScreen();
-            if(!topMessage.equals("")){System.out.println("\n---> "+topMessage+"\n"); topMessage="";}
-
-            System.out.println("iFace [Communities Explorer] <@"+ControllerFactory.getUserController().getLoggedUser().getUsername()+">\n");
-            System.out.println("""
-                    <1> Criar Comunidade 
-                    <2> Listar Todas as Comunidades
-                    <3> Buscar Comunidade 
-                    <0> Voltar""".indent(4));
-            System.out.print("Escolha: ");
-            entrada = scanner.nextInt();
-
-            switch (entrada) {
-                case 0 -> flag = false;
+    public void communitiesPage(){
+        while(true){
+            switch (CLI.dialogCommunities()) {
+                case 0 -> {return;}
                 case 1 -> ControllerFactory.getCommunityController().createCommunityDialog();
-                case 2 -> {
-                    clearScreen();
-                    System.out.println("iFace [Communities List] <@"+ControllerFactory.getUserController().getLoggedUser().getUsername()+">");
+                case 2 -> CLI.dialogCommunitiesListAll();
+                case 3 -> CLI.dialogCommunitiesListMine();
+                case 4 -> {
+                    User loggedUser = ControllerFactory.getUserController().getLoggedUser();
+                    String cName = ControllerFactory.getCommunityController().searchCommunitiesByName();
+                    if(cName == null) break;
 
-                    String list = ControllerFactory.getCommunityController().listCommunities();
-                    System.out.println();
-                    System.out.println(list.equals("") ? "Ainda não existem comunidades cadastradas..." : list);
-                    System.out.println();
+                    if(StorageFactory.getCommunityStorage().nameDoesntExists(cName)){
+                        ViewFactory.getCommunitiesCLI().failedToFind(cName);
+                        break;
+                    }
 
-                    System.out.println("<0> Voltar");
-                    System.out.print("Escolha: ");
-                    int voltar = scanner.nextInt();
-                    while(voltar != 0){
-                        System.out.println("\nPressione \"0\" e Enter para voltar...");
-                        voltar = scanner.nextInt();
+                    Community c = StorageFactory.getCommunityStorage().getCommunityByName(cName);
+                    if(c.getMembers().contains(loggedUser)){
+                        communityPage(c);
+                    } else {
+                        ControllerFactory.getCommunityController().sendRequest(c);
+                        ViewFactory.getCommunitiesCLI().displayRequestSent(c);
                     }
                 }
-                case 3 -> {
-                    String cid = ControllerFactory.getCommunityController().searchCommunitiesByName();
-                    if(cid != null){
-                        communityPage(cid, scanner);
-                    }
-                }
-                default -> topMessage = "A opção escolhida é inválida...";
             }
         }
     }
 
-    private static void communityPage(String cid, Scanner scanner){
+    public void communityPage(Community community){
+        while(true){
+            switch (CLI.dialogCommunityPage(community)) {
+                case 0 -> {return;}
+                case 1 -> communityFeed(community);
+                case 2 -> ViewFactory.getCommunitiesCLI().displayAllMembers(community);
+                case 3 -> ControllerFactory.getCommunityController().approveMember(community);
+            }
+        }
+    }
+
+    public void communityFeed(Community community){
+        User loggedUser = ControllerFactory.getUserController().getLoggedUser();
+        ArrayList<Feed> feed = new ArrayList<>();
+        feed.add(community.getFeed());
+
+        Post post = ControllerFactory.getFeedController().nextPostFromFeeds(feed, loggedUser);
+
+        while(true){
+            switch (CLI.dialogCommunityFeed(post, community)) {
+                case 0 -> {return;}
+                case 1 -> post = ControllerFactory.getFeedController().createPost(community.getFeed(), loggedUser);
+                case 2 -> post = ControllerFactory.getFeedController().nextPostFromFeeds(feed, loggedUser);
+                case 3 -> post = ControllerFactory.getFeedController().previousPost(community.getFeed(), loggedUser);
+            }
+        }
+    }
+
+    public void chatsPage(){
 
     }
 
-    private static void chatsPage(Scanner scanner){}
+    public void profilePage(){
+        while(true){
+            switch (CLI.dialogProfile()) {
+                case 0 -> {return;}
+                case 1 -> ControllerFactory.getUserController().showLoggedUser();
+                case 2 -> ControllerFactory.getUserController().updateUser();
+                case 3 -> {
+                    if(ControllerFactory.getUserController().logout()) return;
+                }
+                case 4 -> {
+                    if(ControllerFactory.getUserController().deleteUser()) return;
+                }
+            }
+        }
+    }
 
-    private static void profilePage(Scanner scanner){}
+    public void friendsPage(){
+        while(true){
+            switch (CLI.dialogFriends()) {
+                case 0 -> {return;}
+                case 1 -> CLI.dialogFriendsListAll();
+                case 2 -> CLI.dialogFriendsListMine();
+                case 3 -> {
+                    User loggedUser = ControllerFactory.getUserController().getLoggedUser();
+                    String username = ControllerFactory.getFriendsController().showFriendshipRequests(loggedUser);
+
+                    if(username == null) break;
+                    if(StorageFactory.getUserStorage().usernameDoesntExists(username)){
+                        ViewFactory.getUserCLI().failedToFind(username);
+                        ControllerFactory.getFriendsController().removeInviteByUsernames(username, loggedUser.getUsername());
+                        break;
+                    }
+
+                    User f = StorageFactory.getUserStorage().getUserByUsername(username);
+                    ControllerFactory.getFriendsController().addFriend(f);
+                }
+                case 4 -> {
+                    String username = ControllerFactory.getFriendsController().searchProfilesByUsername();
+                    if(username == null) break;
+                    if(StorageFactory.getUserStorage().usernameDoesntExists(username)){
+                        ViewFactory.getUserCLI().failedToFind(username);
+                        break;
+                    }
+
+                    User loggedUser = ControllerFactory.getUserController().getLoggedUser();
+                    User u = StorageFactory.getUserStorage().getUserByUsername(username);
+                    if(loggedUser.getFriends().contains(u)){
+                        ViewFactory.getFriendsCLI().displayFriendProfile(u);
+                    } else {
+                        ControllerFactory.getFriendsController().sendInvite(u);
+                        ViewFactory.getFriendsCLI().displaySentInvite(u);
+                    }
+                }
+                case 5 -> {
+                    User loggedUser = ControllerFactory.getUserController().getLoggedUser();
+
+                    String username = ControllerFactory.getFriendsController().searchToUnfriend(loggedUser);
+                    if(username == null) break;
+                    if(StorageFactory.getUserStorage().usernameDoesntExists(username)){
+                        ViewFactory.getUserCLI().failedToFind(username);
+                        break;
+                    }
+                    User u = StorageFactory.getUserStorage().getUserByUsername(username);
+
+
+                    if(loggedUser.getFriends().contains(u)){
+                        ControllerFactory.getFriendsController().removeFriend(u);
+                        ViewFactory.getFriendsCLI().displayRemovedFriend(u);
+                    } else {
+                        ViewFactory.getFriendsCLI().failedToFind(username);
+                    }
+                }
+            }
+        }
+    }
 }

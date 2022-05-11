@@ -7,6 +7,7 @@ public class Community implements Serializable {
 
     private User owner;
     private ArrayList<User> members;
+    private ArrayList<User> requestedMemberships;
     private Feed feed;
 
     private String id;
@@ -29,6 +30,14 @@ public class Community implements Serializable {
 
     public void setMembers(ArrayList<User> members) {
         this.members = members;
+    }
+
+    public ArrayList<User> getRequestedMemberships() {
+        return requestedMemberships;
+    }
+
+    public void setRequestedMemberships(ArrayList<User> requestedMemberships) {
+        this.requestedMemberships = requestedMemberships;
     }
 
     public Feed getFeed() {

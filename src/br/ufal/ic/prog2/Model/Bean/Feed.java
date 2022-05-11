@@ -10,7 +10,7 @@ public class Feed implements Serializable {
     private ArrayList<Post> Posts;
     private Map<String, Integer> LastSeen;
     private Map<String, ArrayList<Post>> History;
-
+    private String targetAudience;
 
 
     public String getId() {
@@ -43,5 +43,13 @@ public class Feed implements Serializable {
 
     public void setHistory(Map<String, ArrayList<Post>> history) {
         History = history;
+    }
+
+    public String getTargetAudience() {
+        return targetAudience;
+    }
+
+    public void setTargetAudience(String targetAudience) {
+        this.targetAudience = targetAudience;
     }
 }
