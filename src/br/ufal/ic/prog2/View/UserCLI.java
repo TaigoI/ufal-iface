@@ -185,8 +185,8 @@ public class UserCLI extends BaseCLI {
                 +("Username: @"+(user.getUsername())).indent(4)
                 +("DisplayName: "+(user.getDisplayName().equals("") ? "EMPTY" : user.getDisplayName())).indent(4)
                 +("BirthDate:   "+(user.getBirthDate().equals("") ? "EMPTY" : user.getBirthDate())).indent(4)
-                +("BirthPlace:  "+(user.getAboutMe().equals("") ? "EMPTY" : user.getAboutMe())).indent(4)
-                +("CurrentCity: "+(user.getCurrentCity().equals("") ? "EMPTY" : user.getCurrentCity())).indent(4)
+                +("About Me:  "+(user.getAboutMe().equals("") ? "EMPTY" : user.getAboutMe())).indent(4)
+                +("Phone Number: "+(user.getPhone().equals("") ? "EMPTY" : user.getPhone())).indent(4)
                 +"}";
     }
 

@@ -55,7 +55,7 @@ public class UserController {
             loggedUser.setDisplayName("");
             loggedUser.setBirthDate("");
             loggedUser.setAboutMe("");
-            loggedUser.setCurrentCity("");
+            loggedUser.setPhone("");
             loggedUser.setPassword("");
             loggedUser.setId("");
 
@@ -73,7 +73,7 @@ public class UserController {
         loggedUser.setDisplayName(CLI.dialogUpdateDisplayName(loggedUser.getDisplayName()));
         loggedUser.setBirthDate(CLI.dialogUpdateBirthDate(loggedUser.getBirthDate()));
         loggedUser.setAboutMe(CLI.dialogUpdateAboutMe(loggedUser.getAboutMe()));
-        loggedUser.setCurrentCity(CLI.dialogUpdatePhone(loggedUser.getCurrentCity()));
+        loggedUser.setPhone(CLI.dialogUpdatePhone(loggedUser.getPhone()));
 
         StorageFactory.getUserStorage().getMemoryDatabase().put(loggedUser.getId(), loggedUser);
         return loggedUser;

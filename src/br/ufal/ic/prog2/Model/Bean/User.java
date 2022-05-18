@@ -10,7 +10,7 @@ public class User implements Serializable {
     private String displayName = "";
     private String aboutMe = "";
     private String birthDate = "";
-    private String currentCity = "";
+    private String phone = "";
 
     private String password = null;
 
@@ -62,12 +62,12 @@ public class User implements Serializable {
         this.birthDate = birthDate;
     }
 
-    public String getCurrentCity() {
-        return currentCity;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setCurrentCity(String currentCity) {
-        this.currentCity = currentCity;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getPassword() {
