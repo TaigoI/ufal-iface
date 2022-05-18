@@ -9,7 +9,6 @@ import br.ufal.ic.prog2.View.UserCLI;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.Scanner;
 
 public class UserController {
@@ -55,7 +54,7 @@ public class UserController {
             loggedUser.setUsername("USER_DELETED");
             loggedUser.setDisplayName("");
             loggedUser.setBirthDate("");
-            loggedUser.setBirthPlace("");
+            loggedUser.setAboutMe("");
             loggedUser.setCurrentCity("");
             loggedUser.setPassword("");
             loggedUser.setId("");
@@ -73,8 +72,8 @@ public class UserController {
 
         loggedUser.setDisplayName(CLI.dialogUpdateDisplayName(loggedUser.getDisplayName()));
         loggedUser.setBirthDate(CLI.dialogUpdateBirthDate(loggedUser.getBirthDate()));
-        loggedUser.setBirthPlace(CLI.dialogUpdateBirthCity(loggedUser.getBirthPlace()));
-        loggedUser.setCurrentCity(CLI.dialogUpdateCurrentCity(loggedUser.getCurrentCity()));
+        loggedUser.setAboutMe(CLI.dialogUpdateAboutMe(loggedUser.getAboutMe()));
+        loggedUser.setCurrentCity(CLI.dialogUpdatePhone(loggedUser.getCurrentCity()));
 
         StorageFactory.getUserStorage().getMemoryDatabase().put(loggedUser.getId(), loggedUser);
         return loggedUser;
@@ -84,11 +83,13 @@ public class UserController {
         Scanner scanner = new Scanner(System.in);
 
         String username = CLI.dialogNewUsername();
+        String displayName = CLI.dialogNewDisplayName();
         String password = CLI.dialogNewPassword();
 
         User user = new User();
         user.setUsername(username);
         user.setPassword(password);
+        user.setDisplayName(displayName);
         user.setFeed(StorageFactory.getFeedStorage().createFeed("Friends"));
         user.setFriends(new ArrayList<>());
         user.setFriendInvites(new ArrayList<>());
@@ -110,8 +111,8 @@ public class UserController {
                 CLI.dialogAskPassword("Login"));
 
         while(user == null){
-            System.out.println("\nIncorrect username or password... Try again");
-            CLI.getEnter();
+            System.out.println("\nIncorrect username or password...");
+            if(!CLI.dialogContinueLogin()) break;
 
             user = StorageFactory.getUserStorage().attemptLogin(
                     CLI.dialogAskUsername("Login"),

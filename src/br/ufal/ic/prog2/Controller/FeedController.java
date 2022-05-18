@@ -45,6 +45,7 @@ public class FeedController {
     public Post createPublicPost(User u){
         String action = "New Post";
 
+
         Feed f = StorageFactory.getFeedStorage().getFeedById("public");
 
         Post newPost = new Post();

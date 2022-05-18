@@ -31,11 +31,15 @@ public class FriendsCLI extends BaseCLI {
     public String dialogSearchByUsername(ArrayList<String> sortedSearch, String searchTerm) {
         User loggedUser = ControllerFactory.getUserController().getLoggedUser();
         for (int i = 0; i < sortedSearch.size(); i++) {
-            User searchUser = StorageFactory.getUserStorage().getUserByUsername(sortedSearch.get(i));
-            if(loggedUser.getFriends().contains(searchUser)){
-                sortedSearch.set(i, sortedSearch.get(i) + " (Go to Profile)");
-            } else {
-                sortedSearch.set(i, sortedSearch.get(i) + " (Request Friendship)");
+            try{
+                User searchUser = StorageFactory.getUserStorage().getUserByUsername(sortedSearch.get(i));
+                if(loggedUser.getFriends().contains(searchUser)){
+                    sortedSearch.set(i, sortedSearch.get(i) + " (Go to Profile)");
+                } else {
+                    sortedSearch.set(i, sortedSearch.get(i) + " (Request Friendship)");
+                }
+            } catch (Exception e){
+                break;
             }
         }
 

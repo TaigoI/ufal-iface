@@ -8,7 +8,7 @@ public class User implements Serializable {
     private String id = null;
     private String username = null;
     private String displayName = "";
-    private String birthPlace = "";
+    private String aboutMe = "";
     private String birthDate = "";
     private String currentCity = "";
 
@@ -46,12 +46,12 @@ public class User implements Serializable {
         this.displayName = displayName;
     }
 
-    public String getBirthPlace() {
-        return birthPlace;
+    public String getAboutMe() {
+        return aboutMe;
     }
 
-    public void setBirthPlace(String birthPlace) {
-        this.birthPlace = birthPlace;
+    public void setAboutMe(String aboutMe) {
+        this.aboutMe = aboutMe;
     }
 
     public String getBirthDate() {

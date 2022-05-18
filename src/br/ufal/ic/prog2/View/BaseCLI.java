@@ -4,6 +4,7 @@ import br.ufal.ic.prog2.Factory.ControllerFactory;
 import br.ufal.ic.prog2.Model.Bean.User;
 
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 import static java.lang.Math.max;
@@ -38,9 +39,20 @@ public abstract class BaseCLI {
 
 
     protected String getNextWord(){
-        Scanner scanner = new Scanner(System.in);
-        String s = scanner.next();
-        scanner.reset();
+        String s = null;
+
+        while (s == null){
+            Scanner scanner = new Scanner(System.in);
+            try{
+                s = scanner.next();
+            } catch (InputMismatchException ime){
+                System.out.println("Invalid Input (String without spaces expected)\nTry again:");
+            } catch (Exception e){
+                System.out.println("Invalid Input\nTry again:");
+            } finally {
+                scanner.reset();
+            }
+        }
 
         return s;
     }
@@ -54,9 +66,20 @@ public abstract class BaseCLI {
 
 
     protected String getNextSentence(){
-        Scanner scanner = new Scanner(System.in);
-        String s = scanner.nextLine();
-        scanner.reset();
+        String s = null;
+
+        while (s == null){
+            Scanner scanner = new Scanner(System.in);
+            try{
+                s = scanner.nextLine();
+            } catch (InputMismatchException ime){
+                System.out.println("Invalid Input (String expected)\nTry again:");
+            } catch (Exception e){
+                System.out.println("Invalid Input\nTry again:");
+            } finally {
+                scanner.reset();
+            }
+        }
 
         return s;
     }
@@ -70,10 +93,19 @@ public abstract class BaseCLI {
 
 
     protected Integer getNextInteger(){
-        Scanner scanner = new Scanner(System.in);
-        Integer i = scanner.nextInt();
-        scanner.reset();
-
+        Integer i = null;
+        while(i == null){
+            Scanner scanner = new Scanner(System.in);
+            try{
+                i = scanner.nextInt();
+            } catch (InputMismatchException ime){
+                System.out.println("Invalid Input (Integer number expected)\nTry again:");
+            } catch (Exception e){
+                System.out.println("Invalid Input\nTry again:");
+            } finally {
+                scanner.reset();
+            }
+        }
         return i;
     }
 
@@ -95,7 +127,14 @@ public abstract class BaseCLI {
         while(true){
             Integer option = getNextInteger(description);
             if(selection.contains(option)) return option;
-            System.out.println("\nInvalid option... Try Again");
+            System.out.print("\nInvalid option...\nTry Again choosing from the set ");
+
+            String s = "";
+            for (Integer i : selection){
+                s = s.concat(s.equals("") ? "" : ", ");
+                s = s.concat(i.toString());
+            }
+            System.out.println("( "+s+" )");
         }
     }
 
@@ -106,15 +145,21 @@ public abstract class BaseCLI {
 
         System.out.println();
         for(int i = 0; i < indices.size(); i++){
-            if(indices.get(i) == -1){
-                indices.remove(i--);
-                System.out.println();
-            } else {
-                System.out.println("["+indices.get(i)+"] - "+descriptions.get(i));
+            try{
+                if(indices.get(i) == -1){
+                    indices.remove(i--);
+                    System.out.println();
+                } else {
+                    System.out.println("["+indices.get(i)+"] - "+descriptions.get(i));
+                }
+            } catch (Exception e){
+                break;
             }
         }
 
-        option = getNextInteger("Choose:", indices);
+        indices.removeIf(i -> i < 0);
+
+        option = getNextInteger(description, indices);
         return option;
     }
 
@@ -135,7 +180,11 @@ public abstract class BaseCLI {
 
             for(int i = pI; i <= pF; i++, j++){
                 if(j>amountOfItemsPerPage) break;
-                indices.add(j); descriptions.add(searchItems.get(i).toString());
+                try{
+                    indices.add(j); descriptions.add(searchItems.get(i).toString());
+                } catch (Exception e){
+                    break;
+                }
             }
 
             indices.add(-1);

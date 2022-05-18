@@ -127,13 +127,16 @@ public class CommunityController {
         String name = CLI.dialogAskCommunityName("Open via Search");
         ArrayList<String> sortedSearch = sortTitlesBySearchName(name);
 
-
         for(int i = 0; i < sortedSearch.size(); i++){
-            Community c = StorageFactory.getCommunityStorage().getCommunityByName(sortedSearch.get(i));
-            if(c.getMembers().contains(ControllerFactory.getUserController().getLoggedUser())){
-                sortedSearch.set(i, sortedSearch.get(i)+" (View)");
-            } else {
-                sortedSearch.set(i, sortedSearch.get(i)+" (Request Membership)");
+            try{
+                Community c = StorageFactory.getCommunityStorage().getCommunityByName(sortedSearch.get(i));
+                if(c.getMembers().contains(ControllerFactory.getUserController().getLoggedUser())){
+                    sortedSearch.set(i, sortedSearch.get(i)+" (View)");
+                } else {
+                    sortedSearch.set(i, sortedSearch.get(i)+" (Request Membership)");
+                }
+            } catch (Exception e){
+                System.out.println("Comunidade "+sortedSearch.get(i)+" não foi encontrada...");
             }
         }
 
